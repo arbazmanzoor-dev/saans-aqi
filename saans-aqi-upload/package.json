@@ -1,0 +1,26 @@
+{
+  "name": "saans-aqi",
+  "version": "1.0.0",
+  "description": "Saans AQI — Delhi air quality forecasting, in your language",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --env-file-if-exists=.env server.js",
+    "train:setup": "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+    "train": ".venv/bin/python train_ml.py && node build_day_factors.js",
+    "train:nextday": ".venv/bin/python train_nextday.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "leaflet": "^1.9.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@turf/turf": "^7.4.0"
+  }
+}

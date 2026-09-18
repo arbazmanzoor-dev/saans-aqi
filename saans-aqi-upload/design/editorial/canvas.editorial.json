@@ -1,0 +1,25 @@
+{
+  "pages": [
+    { "id": "desktop", "name": "Web" },
+    { "id": "phone", "name": "Narrow" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html",      "x": 0,    "y": 0,    "w": 1280, "h": 900, "page": "desktop", "title": "Today", "is_interactive": true },
+    { "file": "Forecast.dc.html",  "x": 1380, "y": 0,    "w": 1280, "h": 900, "page": "desktop", "title": "Forecast", "is_interactive": true },
+    { "file": "Ask.dc.html",       "x": 2760, "y": 0,    "w": 1280, "h": 900, "page": "desktop", "title": "Ask", "is_interactive": true },
+    { "file": "Patterns.dc.html",  "x": 4140, "y": 0,    "w": 1280, "h": 900, "page": "desktop", "title": "Patterns" },
+    { "file": "Severity.dc.html",  "x": 0,    "y": 1080, "w": 1160, "h": 900, "page": "desktop", "title": "Severity states" },
+
+    { "file": "TodayPhone.dc.html",    "x": 0,    "y": 0, "w": 390, "h": 844, "page": "phone", "title": "Today", "is_interactive": true },
+    { "file": "ForecastPhone.dc.html", "x": 490,  "y": 0, "w": 390, "h": 844, "page": "phone", "title": "Forecast", "is_interactive": true },
+    { "file": "AskPhone.dc.html",      "x": 980,  "y": 0, "w": 390, "h": 844, "page": "phone", "title": "Ask", "is_interactive": true },
+    { "file": "PatternsPhone.dc.html", "x": 1470, "y": 0, "w": 390, "h": 844, "page": "phone", "title": "Patterns" }
+  ],
+  "annotations": [
+    { "id": "web-note", "x": 1290, "y": 1080, "w": 300, "page": "desktop",
+      "text": "Web, 1280 wide.\n\nNav sits in a sticky site header — no bottom tab bar. Content is a 996px column centred in the page.\n\nToday puts the reading beside the advice; Patterns runs the seasonal wave full width with two supporting charts below.\n\nToday, Forecast and Ask are live: tap a day, scrub the year, switch language. The sun icon flips dark mode." },
+    { "id": "phone-note", "x": 1960, "y": 0, "w": 300, "page": "phone",
+      "text": "The same pages under 860px, where the app collapses to one column.\n\nNot a separate product — the identical markup reflowed. Kept here so the narrow breakpoint has a reference too." }
+  ],
+  "launch": { "view": "canvas", "page": "desktop" }
+}

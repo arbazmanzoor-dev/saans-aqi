@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Gurmukhi:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F5241; } a:hover { color: #143A2E; }
+    .num { font-family: 'Instrument Serif', Georgia, serif; font-variant-numeric: tabular-nums; }
+    .body { font-family: 'Karla', 'Helvetica Neue', sans-serif; }
+    .eyebrow { font-family: 'Karla', sans-serif; font-size: 11px; font-weight: 600;
+               letter-spacing: 0.14em; text-transform: uppercase; }
+    .lang { cursor: pointer; border: 0; padding: 8px 14px; border-radius: 999px;
+            font-size: 13px; font-family: 'Karla', sans-serif; }
+    .sug { cursor: pointer; border-style: solid; border-width: 1px; background: none;
+           padding: 9px 14px; border-radius: 999px; font-size: 12.5px; white-space: nowrap;
+           font-family: 'Karla', sans-serif; }
+  </style>
+</helmet>
+
+<div class="body" style="width: 390px; height: 844px; background: {{t.bg}}; color: {{t.ink}};
+            display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 28px 24px 16px;">
+    <span class="num" style="font-size: 27px;">Ask Saans</span>
+  </div>
+
+  <!-- language, as one control -->
+  <div style="padding: 0 24px;">
+    <div style="display: flex; gap: 2px; border: 1px solid {{t.rule}}; border-radius: 999px;
+                padding: 3px;">
+      <sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
+        <button class="lang" onClick="{{ l.pick }}"
+                style="flex: 1; background: {{ l.bg }}; color: {{ l.color }};
+                       font-weight: {{ l.weight }}; font-family: {{ l.font }};">{{ l.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- one row, scrolls sideways -->
+  <div style="padding: 16px 0 0 24px; overflow: hidden;">
+    <div style="display: flex; gap: 8px;">
+      <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+        <button class="sug" style="flex: none; border-color: {{t.rule}}; color: {{t.muted}};">{{ s.text }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 24px 24px 0; display: flex; flex-direction: column; gap: 18px;">
+    <!-- assistant -->
+    <div style="max-width: 86%;">
+      <div class="eyebrow" style="color: {{t.faint}}; margin-bottom: 8px;">Saans</div>
+      <p class="num" style="margin: 0; font-size: 19px; line-height: 1.48; text-wrap: pretty;">{{ opener }}</p>
+    </div>
+
+    <!-- person -->
+    <div style="align-self: flex-end; max-width: 78%; background: {{t.inkSoft}};
+                border-radius: 16px 16px 4px 16px; padding: 13px 16px;">
+      <p style="margin: 0; font-size: 14.5px; line-height: 1.45; color: {{t.bg}};">Is it safe for my child?</p>
+    </div>
+
+    <!-- assistant, quoting a reading -->
+    <div style="max-width: 90%;">
+      <div class="eyebrow" style="color: {{t.faint}}; margin-bottom: 8px;">Saans</div>
+      <div style="display: flex; align-items: baseline; gap: 9px; margin-bottom: 10px;
+                  padding: 8px 13px; border-radius: 999px; background: {{ band.wash }};
+                  align-self: flex-start; width: fit-content;">
+        <span class="num" style="font-size: 20px; color: {{ band.color }};">96</span>
+        <span class="eyebrow" style="color: {{ band.color }};">{{ band.label }}</span>
+      </div>
+      <p class="num" style="margin: 0; font-size: 19px; line-height: 1.48; text-wrap: pretty;">{{ reply }}</p>
+    </div>
+  </div>
+
+  <!-- composer -->
+  <div style="padding: 16px 24px 18px;">
+    <div style="display: flex; align-items: center; gap: 12px; border: 1px solid {{t.rule}};
+                border-radius: 999px; padding: 6px 6px 6px 18px;">
+      <span style="flex-grow: 1; font-size: 14px; color: {{t.faint}};">Ask about Delhi's air…</span>
+      <div style="width: 44px; height: 44px; border-radius: 999px; background: {{t.accent}};
+                  display: flex; align-items: center; justify-content: center; color: {{t.bg}};">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h13m-5-6 6 6-6 6"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; border-top: 1px solid {{t.rule}}; padding: 10px 8px 22px;">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px;
+                  padding: 8px 0; color: {{ n.color }};">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="{{ n.icon }}"></path>
+        </svg>
+        <span style="font-size: 10.5px; font-weight: {{ n.weight }};">{{ n.label }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { lang: 0 }; }
+
+  renderVals() {
+    const dark = this.props.dark ?? false;
+    const t = dark
+      ? { bg: '#14120F', ink: '#F2EDE4', inkSoft: '#F2EDE4', muted: '#9A9186',
+          faint: '#5D564D', rule: '#2E2A24', accent: '#7FB39E' }
+      : { bg: '#FAF7F1', ink: '#1B1815', inkSoft: '#1B1815', muted: '#6E675C',
+          faint: '#ADA496', rule: '#E7E0D4', accent: '#1F5241' };
+
+    const langs = [
+      { label: 'English', font: "'Karla', sans-serif" },
+      { label: 'हिंदी', font: "'Noto Sans Devanagari', sans-serif" },
+      { label: 'ਪੰਜਾਬੀ', font: "'Noto Sans Gurmukhi', sans-serif" },
+      { label: 'اردو', font: "'Noto Naskh Arabic', serif" },
+    ];
+
+    /* Each language answers in its own script — the opener and reply follow
+       the selected one, the way the app actually behaves. */
+    const copy = [
+      { opener: 'Ask me anything about Delhi’s air — I’ll answer in whichever language you write in.',
+        reply: 'Today is one of the easier days. Short outdoor play is fine; keep an eye on the late afternoon, and if she has asthma, keep the inhaler to hand.' },
+      { opener: 'दिल्ली की हवा के बारे में कुछ भी पूछिए — आप जिस भाषा में लिखेंगे, मैं उसी में जवाब दूँगा।',
+        reply: 'आज के दिन हवा ठीक है। थोड़ी देर बाहर खेलना ठीक रहेगा, पर दोपहर बाद ध्यान रखें।' },
+      { opener: 'ਦਿੱਲੀ ਦੀ ਹਵਾ ਬਾਰੇ ਕੁਝ ਵੀ ਪੁੱਛੋ — ਜਿਸ ਭਾਸ਼ਾ ਵਿੱਚ ਤੁਸੀਂ ਲਿਖੋਗੇ, ਮੈਂ ਉਸੇ ਵਿੱਚ ਜਵਾਬ ਦਿਆਂਗਾ।',
+        reply: 'ਅੱਜ ਹਵਾ ਠੀਕ ਹੈ। ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਹਰ ਖੇਡਣਾ ਠੀਕ ਹੈ, ਪਰ ਦੁਪਹਿਰ ਤੋਂ ਬਾਅਦ ਧਿਆਨ ਰੱਖੋ।' },
+      { opener: 'دہلی کی ہوا کے بارے میں کچھ بھی پوچھیں — آپ جس زبان میں لکھیں گے، میں اسی میں جواب دوں گا۔',
+        reply: 'آج ہوا ٹھیک ہے۔ تھوڑی دیر باہر کھیلنا ٹھیک ہے، لیکن دوپہر کے بعد خیال رکھیں۔' },
+    ];
+
+    const sel = this.state.lang;
+    const band = dark
+      ? { label: 'Satisfactory', color: '#93BF47', wash: 'rgba(147,191,71,0.16)' }
+      : { label: 'Satisfactory', color: '#6B9A2E', wash: 'rgba(107,154,46,0.14)' };
+
+    return {
+      t, band,
+      opener: copy[sel].opener,
+      reply: copy[sel].reply,
+      langs: langs.map((l, i) => ({
+        ...l,
+        bg: i === sel ? t.ink : 'transparent',
+        color: i === sel ? t.bg : t.muted,
+        weight: i === sel ? '600' : '400',
+        pick: () => this.setState({ lang: i }),
+      })),
+      suggestions: [
+        { text: 'When is the air worst?' },
+        { text: 'Is it safe for my child?' },
+        { text: 'Best time to run?' },
+      ],
+      nav: [
+        { label: 'Today', color: t.muted, weight: '500', icon: 'M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z' },
+        { label: 'Forecast', color: t.muted, weight: '500', icon: 'M3 16h5m-5 4h9M6 12a4 4 0 0 1 .8-7.9 5.5 5.5 0 0 1 10.4 1.4A3.8 3.8 0 0 1 20 12' },
+        { label: 'Ask', color: t.ink, weight: '600', icon: 'M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5.1A8 8 0 1 1 21 12z' },
+        { label: 'Patterns', color: t.muted, weight: '500', icon: 'M4 19V9m5 10V5m5 14v-7m5 7V8' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Gurmukhi:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F5241; text-decoration: none; } a:hover { color: #143A2E; }
+    .num { font-family: 'Instrument Serif', Georgia, serif; font-variant-numeric: tabular-nums; }
+    .body { font-family: 'Karla', 'Helvetica Neue', sans-serif; }
+    .eyebrow { font-family: 'Karla', sans-serif; font-size: 11px; font-weight: 600;
+               letter-spacing: 0.14em; text-transform: uppercase; }
+    .tap { cursor: pointer; border: 0; background: none; font-family: 'Karla', sans-serif; }
+  </style>
+</helmet>
+
+<div class="body" style="width: 1280px; height: 900px; background: {{t.bg}}; color: {{t.ink}};
+            display: flex; flex-direction: column; overflow: hidden;">
+  <!-- site header -->
+  <div style="border-bottom: 1px solid {{t.rule}}; background: {{t.bg}};">
+    <div style="display: flex; align-items: center; gap: 28px; height: 68px;
+                width: 996px; margin: 0 auto;">
+      <div style="display: flex; align-items: baseline; gap: 7px; flex: none;">
+        <span class="num" style="font-size: 25px;">Saans</span>
+        <span class="eyebrow" style="color: {{t.muted}};">AQI</span>
+      </div>
+      <div style="display: flex; gap: 2px; flex-grow: 1;">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <span style="padding: 8px 14px; border-radius: 999px; font-size: 13.5px;
+                       font-weight: {{ n.weight }}; color: {{ n.color }};
+                       background: {{ n.bg }};">{{ n.label }}</span>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; flex: none;">
+        <button onClick="{{ toggleDark }}" style="width: 40px; height: 40px; border: 0;
+                background: none; cursor: pointer; color: {{t.muted}}; border-radius: 999px;
+                display: flex; align-items: center; justify-content: center;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="{{t.themeIcon}}"></path>
+          </svg>
+        </button>
+        <div style="width: 32px; height: 32px; border-radius: 999px; border: 1px solid {{t.rule}};
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 12px; font-weight: 600; color: {{t.muted}};">A</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- conversation is held narrow; wide chat is unreadable -->
+  <div style="width: 720px; margin: 0 auto; padding-top: 44px; display: flex;
+              flex-direction: column; flex-grow: 1; min-height: 0;">
+
+    <div style="display: flex; gap: 2px; border: 1px solid {{t.rule}}; border-radius: 999px; padding: 3px;">
+      <sc-for list="{{ langs }}" as="l" hint-placeholder-count="4">
+        <button class="tap" onClick="{{ l.pick }}"
+                style="flex: 1; padding: 9px 14px; border-radius: 999px; font-size: 13px;
+                       font-family: {{ l.font }}; font-weight: {{ l.weight }};
+                       background: {{ l.bg }}; color: {{ l.color }};">{{ l.label }}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px;">
+      <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+        <span style="padding: 9px 14px; border: 1px solid {{t.rule}}; border-radius: 999px;
+                     font-size: 12.5px; color: {{t.muted}};">{{ s.text }}</span>
+      </sc-for>
+    </div>
+
+    <div style="flex-grow: 1; padding-top: 28px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="max-width: 90%;">
+        <div class="eyebrow" style="color: {{t.faint}}; margin-bottom: 8px;">Saans</div>
+        <p class="num" style="margin: 0; font-size: 20px; line-height: 1.48; text-wrap: pretty;">{{ opener }}</p>
+      </div>
+
+      <div style="align-self: flex-end; max-width: 70%; background: {{t.ink}};
+                  border-radius: 16px 16px 4px 16px; padding: 13px 17px;">
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.45; color: {{t.bg}};">{{ question }}</p>
+      </div>
+
+      <div style="max-width: 90%;">
+        <div class="eyebrow" style="color: {{t.faint}}; margin-bottom: 8px;">Saans</div>
+        <div style="display: inline-flex; align-items: baseline; gap: 9px; padding: 8px 13px;
+                    border-radius: 999px; background: {{ band.wash }}; margin-bottom: 12px;">
+          <span class="num" style="font-size: 20px; color: {{ band.color }};">94</span>
+          <span class="eyebrow" style="color: {{ band.color }};">{{ band.label }}</span>
+        </div>
+        <p class="num" style="margin: 0; font-size: 20px; line-height: 1.48; text-wrap: pretty;">{{ reply }}</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; margin: 20px 0 44px;
+                border: 1px solid {{t.rule}}; border-radius: 999px; padding: 6px 6px 6px 18px;">
+      <span style="flex-grow: 1; font-size: 14px; color: {{t.faint}};">Ask about Delhi's air…</span>
+      <div style="width: 44px; height: 44px; border-radius: 999px; background: {{t.accent}};
+                  display: flex; align-items: center; justify-content: center; color: {{t.bg}};">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h13m-5-6 6 6-6 6"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { lang: 0, dark: null }; }
+
+  bandFor(v, dark) {
+    const bands = [
+      { max: 50,   label: 'Good',         light: '#2E7D4F', dark: '#4FA873' },
+      { max: 100,  label: 'Satisfactory', light: '#6B9A2E', dark: '#93BF47' },
+      { max: 200,  label: 'Moderate',     light: '#D4881A', dark: '#E5A63F' },
+      { max: 300,  label: 'Poor',         light: '#DB5F22', dark: '#EA7B42' },
+      { max: 400,  label: 'Very Poor',    light: '#C32A22', dark: '#DE5049' },
+      { max: 9999, label: 'Severe',       light: '#7B1D57', dark: '#B85088' },
+    ];
+    const b = bands.find((x) => v <= x.max);
+    return { label: b.label, color: dark ? b.dark : b.light };
+  }
+
+  theme(dark) {
+    return dark
+      ? { bg: '#14120F', card: '#1D1A16', ink: '#F2EDE4', muted: '#9A9186',
+          faint: '#5D564D', rule: '#2E2A24', sel: 'rgba(242,237,228,0.06)', accent: '#7FB39E',
+          themeIcon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z' }
+      : { bg: '#FAF7F1', card: '#FFFDF9', ink: '#1B1815', muted: '#6E675C',
+          faint: '#ADA496', rule: '#E7E0D4', sel: 'rgba(27,24,21,0.045)', accent: '#1F5241',
+          themeIcon: 'M12 4v2m0 12v2M4 12H2m20 0h-2M6.3 6.3 4.9 4.9m14.2 1.4 1.4-1.4M6.3 17.7l-1.4 1.4m14.2-1.4 1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z' };
+  }
+
+  navFor(t, active) {
+    return ['Today','Forecast','Ask','Patterns'].map((label) => ({
+      label,
+      color: label === active ? t.ink : t.muted,
+      weight: label === active ? '600' : '500',
+      bg: label === active ? t.sel : 'transparent',
+    }));
+  }
+
+
+  renderVals() {
+    const dark = this.state.dark === null ? (this.props.dark ?? false) : this.state.dark;
+    const t = this.theme(dark);
+
+    const langs = [
+      { label: 'English', font: "'Karla', sans-serif" },
+      { label: 'हिंदी', font: "'Noto Sans Devanagari', sans-serif" },
+      { label: 'ਪੰਜਾਬੀ', font: "'Noto Sans Gurmukhi', sans-serif" },
+      { label: 'اردو', font: "'Noto Naskh Arabic', serif" },
+    ];
+    const copy = [
+      { opener: 'Ask me anything about Delhi’s air — I’ll answer in whichever language you write in.',
+        question: 'Is it safe for my child?',
+        reply: 'Today is one of the easier days. Short outdoor play is fine; keep an eye on the late afternoon, and if she has asthma, keep the inhaler to hand.' },
+      { opener: 'दिल्ली की हवा के बारे में कुछ भी पूछिए — आप जिस भाषा में लिखेंगे, मैं उसी में जवाब दूँगा।',
+        question: 'क्या मेरे बच्चे के लिए सुरक्षित है?',
+        reply: 'आज के दिन हवा ठीक है। थोड़ी देर बाहर खेलना ठीक रहेगा, पर दोपहर बाद ध्यान रखें।' },
+      { opener: 'ਦਿੱਲੀ ਦੀ ਹਵਾ ਬਾਰੇ ਕੁਝ ਵੀ ਪੁੱਛੋ — ਜਿਸ ਭਾਸ਼ਾ ਵਿੱਚ ਤੁਸੀਂ ਲਿਖੋਗੇ, ਮੈਂ ਉਸੇ ਵਿੱਚ ਜਵਾਬ ਦਿਆਂਗਾ।',
+        question: 'ਕੀ ਮੇਰੇ ਬੱਚੇ ਲਈ ਸੁਰੱਖਿਅਤ ਹੈ?',
+        reply: 'ਅੱਜ ਹਵਾ ਠੀਕ ਹੈ। ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਹਰ ਖੇਡਣਾ ਠੀਕ ਹੈ, ਪਰ ਦੁਪਹਿਰ ਤੋਂ ਬਾਅਦ ਧਿਆਨ ਰੱਖੋ।' },
+      { opener: 'دہلی کی ہوا کے بارے میں کچھ بھی پوچھیں — آپ جس زبان میں لکھیں گے، میں اسی میں جواب دوں گا۔',
+        question: 'کیا میرے بچے کے لیے محفوظ ہے؟',
+        reply: 'آج ہوا ٹھیک ہے۔ تھوڑی دیر باہر کھیلنا ٹھیک ہے، لیکن دوپہر کے بعد خیال رکھیں۔' },
+    ];
+    const sel = this.state.lang;
+    const b = this.bandFor(94, dark);
+
+    return {
+      t,
+      band: { label: b.label, color: b.color,
+              wash: dark ? 'rgba(147,191,71,0.16)' : 'rgba(107,154,46,0.14)' },
+      opener: copy[sel].opener,
+      question: copy[sel].question,
+      reply: copy[sel].reply,
+      langs: langs.map((l, i) => ({ ...l,
+        bg: i === sel ? t.ink : 'transparent',
+        color: i === sel ? t.bg : t.muted,
+        weight: i === sel ? '600' : '400',
+        pick: () => this.setState({ lang: i }) })),
+      suggestions: [{ text: 'When is the air worst?' }, { text: 'Is it safe for my child?' },
+                    { text: 'Best time to run?' }],
+      nav: this.navFor(t, 'Ask'),
+      toggleDark: () => this.setState({ dark: !dark }),
+    };
+  }
+}
+</script>
+</body>
+</html>

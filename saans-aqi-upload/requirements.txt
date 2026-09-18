@@ -1,0 +1,6 @@
+# Python packages for train_ml.py. Install with: npm run train:setup
+# XGBoost on macOS also needs OpenMP: brew install libomp
+numpy==2.5.3
+scikit-learn==1.9.1
+openpyxl==3.1.5
+xgboost==3.4.1

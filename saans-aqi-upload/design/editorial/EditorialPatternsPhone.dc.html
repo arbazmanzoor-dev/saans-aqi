@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F5241; } a:hover { color: #143A2E; }
+    .num { font-family: 'Instrument Serif', Georgia, serif; font-variant-numeric: tabular-nums; }
+    .body { font-family: 'Karla', 'Helvetica Neue', sans-serif; }
+    .eyebrow { font-family: 'Karla', sans-serif; font-size: 11px; font-weight: 600;
+               letter-spacing: 0.14em; text-transform: uppercase; }
+  </style>
+</helmet>
+
+<div class="body" style="width: 390px; height: 844px; background: {{t.bg}}; color: {{t.ink}};
+            display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 28px 24px 0;">
+    <span class="num" style="font-size: 27px;">Patterns</span>
+  </div>
+
+  <!-- lead with the finding, not the chart -->
+  <div style="padding: 20px 24px 0;">
+    <p class="num" style="margin: 0; font-size: 29px; line-height: 1.26; text-wrap: pretty;">November
+      is <span style="color: {{ accentColor }};">3.9 times</span> August.</p>
+    <p style="margin: 12px 0 0; font-size: 13px; line-height: 1.55; color: {{t.muted}};">Delhi’s year
+      has one shape, and it repeats. The monsoon washes the air to its cleanest; the winter inversion
+      traps it at its worst.</p>
+  </div>
+
+  <!-- the seasonal wave -->
+  <div style="padding: 26px 24px 0;">
+    <svg width="342" height="158" viewBox="0 0 342 158" style="display: block;">
+      <path d="{{ wave.area }}" fill="{{ accentColor }}" opacity="0.13"></path>
+      <path d="{{ wave.line }}" fill="none" stroke="{{ accentColor }}" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"></path>
+      <sc-for list="{{ wave.peaks }}" as="p" hint-placeholder-count="2">
+        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="3.5" fill="{{ p.color }}"></circle>
+        <text x="{{ p.tx }}" y="{{ p.ty }}" font-family="Instrument Serif, Georgia, serif"
+              font-size="15" fill="{{ p.color }}" text-anchor="{{ p.anchor }}">{{ p.v }}</text>
+      </sc-for>
+    </svg>
+    <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+      <sc-for list="{{ monthLabels }}" as="m" hint-placeholder-count="12">
+        <span style="font-size: 9.5px; color: {{ m.color }};">{{ m.label }}</span>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="height: 1px; background: {{t.rule}}; margin: 26px 24px 0;"></div>
+
+  <!-- year on year -->
+  <div style="padding: 22px 24px 0;">
+    <div class="eyebrow" style="color: {{t.muted}};">Year on year</div>
+    <p style="margin: 10px 0 0; font-size: 13px; line-height: 1.55; color: {{t.muted}};">Flat since
+      2021. The 2020 dip was the lockdown, not a trend — so it is left out of the fit.</p>
+
+    <svg width="342" height="122" viewBox="0 0 342 122" style="display: block; margin-top: 16px;">
+      <line x1="0" y1="{{ trend.baseY }}" x2="342" y2="{{ trend.baseY }}"
+            stroke="{{t.rule}}" stroke-width="1"></line>
+      <path d="{{ trend.actual }}" fill="none" stroke="{{ accentColor }}" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="{{ trend.projected }}" fill="none" stroke="{{t.muted}}" stroke-width="1.5"
+            stroke-dasharray="3 4" stroke-linecap="round"></path>
+      <sc-for list="{{ trend.dots }}" as="d" hint-placeholder-count="5">
+        <circle cx="{{ d.x }}" cy="{{ d.y }}" r="3" fill="{{ accentColor }}"></circle>
+      </sc-for>
+      <path d="{{ trend.partial }}" fill="none" stroke="{{t.muted}}" stroke-width="1.5"></path>
+    </svg>
+    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+      <sc-for list="{{ trend.labels }}" as="y" hint-placeholder-count="6">
+        <span style="font-size: 9.5px; color: {{t.faint}};">{{ y.label }}</span>
+      </sc-for>
+    </div>
+    <p style="margin: 14px 0 0; font-size: 11.5px; line-height: 1.5; color: {{t.faint}};">△ 2025 is
+      January to March only, so it sits apart from the line.</p>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="padding: 0 24px 16px;">
+    <p style="margin: 0; font-size: 11.5px; color: {{t.faint}};">1,916 daily readings · 2020–2025</p>
+  </div>
+
+  <div style="display: flex; border-top: 1px solid {{t.rule}}; padding: 10px 8px 22px;">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px;
+                  padding: 8px 0; color: {{ n.color }};">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="{{ n.icon }}"></path>
+        </svg>
+        <span style="font-size: 10.5px; font-weight: {{ n.weight }};">{{ n.label }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+  /* Catmull-Rom through the points, emitted as cubic beziers. */
+  smooth(pts) {
+    let d = 'M ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ' C ' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ', ' + c2x.toFixed(1) + ' ' +
+           c2y.toFixed(1) + ', ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+
+  renderVals() {
+    const dark = this.props.dark ?? false;
+    const t = dark
+      ? { bg: '#14120F', ink: '#F2EDE4', muted: '#9A9186', faint: '#5D564D', rule: '#2E2A24' }
+      : { bg: '#FAF7F1', ink: '#1B1815', muted: '#6E675C', faint: '#ADA496', rule: '#E7E0D4' };
+    const accentColor = dark ? '#DE5049' : '#C32A22';
+    const clean = dark ? '#93BF47' : '#6B9A2E';
+
+    /* Monthly means from this project's 1,916 cleaned daily readings. */
+    const vals = [310, 238, 181, 186, 179, 154, 92, 91, 103, 220, 354, 326];
+    const names = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+    const W = 342, H = 140, maxV = 380;
+    const pts = vals.map((v, i) => ({ x: (i / 11) * (W - 20) + 10, y: H - (v / maxV) * (H - 26) }));
+
+    const line = this.smooth(pts);
+    const area = line + ' L ' + pts[11].x.toFixed(1) + ' ' + H + ' L ' + pts[0].x.toFixed(1) +
+                 ' ' + H + ' Z';
+
+    const peaks = [
+      { i: 10, v: 354, color: accentColor, anchor: 'middle', dy: -14 },
+      { i: 7, v: 91, color: clean, anchor: 'middle', dy: 22 },
+    ].map((p) => ({
+      v: p.v, color: p.color, anchor: p.anchor,
+      x: pts[p.i].x.toFixed(1), y: pts[p.i].y.toFixed(1),
+      tx: pts[p.i].x.toFixed(1), ty: (pts[p.i].y + p.dy).toFixed(1),
+    }));
+
+    /* Annual means; 2025 covers January to March only. */
+    const years = [185, 209, 209, 204, 209];
+    const TW = 342, TH = 100, lo = 175, hi = 240;
+    const ty = (v) => TH - ((v - lo) / (hi - lo)) * (TH - 20);
+    const tx = (i) => (i / 10) * (TW - 20) + 10;
+    const dots = years.map((v, i) => ({ x: tx(i).toFixed(1), y: ty(v).toFixed(1) }));
+    const actual = this.smooth(years.map((v, i) => ({ x: tx(i), y: ty(v) })));
+    let projected = 'M ' + tx(4).toFixed(1) + ' ' + ty(209).toFixed(1);
+    projected += ' L ' + tx(10).toFixed(1) + ' ' + ty(208.5).toFixed(1);
+    const px = tx(5), py = ty(230);
+    const partial = 'M ' + (px - 5).toFixed(1) + ' ' + (py + 4).toFixed(1) + ' L ' + px.toFixed(1) +
+                    ' ' + (py - 5).toFixed(1) + ' L ' + (px + 5).toFixed(1) + ' ' +
+                    (py + 4).toFixed(1) + ' Z';
+
+    return {
+      t, accentColor,
+      wave: { line, area, peaks },
+      monthLabels: names.map((label, i) => ({
+        label, color: i === 10 || i === 7 ? t.ink : t.faint,
+      })),
+      trend: {
+        actual, projected, partial, dots, baseY: TH.toFixed(1),
+        labels: [{ label: '2020' }, { label: '2022' }, { label: '2024' },
+                 { label: '2026' }, { label: '2028' }, { label: '2030' }],
+      },
+      nav: [
+        { label: 'Today', color: t.muted, weight: '500', icon: 'M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z' },
+        { label: 'Forecast', color: t.muted, weight: '500', icon: 'M3 16h5m-5 4h9M6 12a4 4 0 0 1 .8-7.9 5.5 5.5 0 0 1 10.4 1.4A3.8 3.8 0 0 1 20 12' },
+        { label: 'Ask', color: t.muted, weight: '500', icon: 'M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5.1A8 8 0 1 1 21 12z' },
+        { label: 'Patterns', color: t.ink, weight: '600', icon: 'M4 19V9m5 10V5m5 14v-7m5 7V8' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

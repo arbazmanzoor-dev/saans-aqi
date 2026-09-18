@@ -1,0 +1,232 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+Devanagari:wght@400;600&amp;family=Noto+Sans+Gurmukhi:wght@400;600&amp;family=Noto+Naskh+Arabic:wght@400;600&amp;display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #059669; text-decoration: none; }
+    a:hover { color: #006948; }
+    .tap { cursor: pointer; border: 0; font-family: 'Inter', system-ui, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; background: {{t.bg}}; color: {{t.ink}}; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column;"><div style="background: linear-gradient(90deg, {{t.hdrA}}, {{t.hdrB}}); box-shadow: 0 1px 2px rgba(15,23,42,0.08);"><div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 0;"><div style="display: flex; align-items: center; gap: 10px; color: #FFFFFF; flex: none;"><div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.leaf }}"></path></svg></div><span style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Saans AQI</span></div><div style="display: flex; align-items: center; gap: 6px; flex: none;"><button class="tap" onClick="{{ toggleDark }}" style="width: 36px; height: 36px; background: none; border-radius: 999px; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg></button><div style="width: 32px; height: 32px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">A</div></div></div><div style="display: flex; padding: 10px 16px;"><div style="display: flex; gap: 4px; flex-grow: 1;"><sc-for list="{{ nav }}" as="n" hint-placeholder-count="5"><span style="padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; background: {{ n.bg }}; color: {{ n.color }};">{{ n.label }}</span></sc-for></div></div></div><div style="padding: 16px 16px 40px;"><div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;"><span style="width: 36px; height: 36px; border-radius: 10px; background: {{t.pfixedSoft}}; color: {{t.primaryC}}; display: flex; align-items: center; justify-content: center; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.robot }}"></path></svg></span><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; color: {{t.ink}};">AI Air Quality Assistant</span></div><div style="background: {{t.card}}; border: 1px solid {{t.line}}; border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); padding: 14px;"><div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {{t.muted}}; margin-right: 4px;">Language</span><sc-for list="{{ langs }}" as="l" hint-placeholder-count="4"><button class="tap" onClick="{{ l.pick }}" style="border: 1px solid {{ l.border }}; background: {{ l.bg }}; color: {{ l.color }}; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: {{ l.weight }}; font-family: {{ l.font }};">{{ l.label }}</button></sc-for></div><div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;"><sc-for list="{{ sugs }}" as="s" hint-placeholder-count="3"><span style="border: 1px solid {{t.line}}; background: {{t.field}}; color: {{t.ink2}}; padding: 5px 12px; border-radius: 999px; font-size: 12.5px;">{{ s.text }}</span></sc-for></div></div><div style="display: flex; flex-direction: column; gap: 14px; padding: 18px 2px;"><div style="display: flex; gap: 10px; align-items: flex-start;"><div style="flex: none; width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-top: 2px; background: {{t.pfixedSoft}}; color: {{t.primaryC}};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.leaf }}"></path></svg></div><div dir="{{ dir }}" style="max-width: 78%; padding: 12px 14px; font-size: 14px; line-height: 1.6; box-shadow: 0 1px 2px rgba(15,23,42,0.05); font-family: {{ font }}; border-radius: 16px 16px 16px 4px; background: {{t.card}}; border: 1px solid {{t.line}}; color: {{t.ink}};">{{ opener }}</div></div><div style="display: flex; flex-direction: row-reverse; gap: 10px; align-items: flex-start;"><div style="flex: none; width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-top: 2px; background: {{t.skyBg}}; color: {{t.skyInk}};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.person }}"></path></svg></div><div dir="{{ dir }}" style="max-width: 78%; padding: 12px 14px; font-size: 14px; line-height: 1.6; box-shadow: 0 1px 2px rgba(15,23,42,0.05); font-family: {{ font }}; border-radius: 16px 16px 4px 16px; background: {{t.primaryC}}; color: #FFFFFF; font-weight: 500;">{{ question }}</div></div><div style="display: flex; gap: 10px; align-items: flex-start;"><div style="flex: none; width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-top: 2px; background: {{t.pfixedSoft}}; color: {{t.primaryC}};"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.leaf }}"></path></svg></div><div dir="{{ dir }}" style="max-width: 78%; padding: 12px 14px; font-size: 14px; line-height: 1.6; box-shadow: 0 1px 2px rgba(15,23,42,0.05); font-family: {{ font }}; border-radius: 16px 16px 16px 4px; background: {{t.card}}; border: 1px solid {{t.line}}; color: {{t.ink}};">{{ reply }}</div></div></div><div style="display: flex; align-items: center; gap: 8px; background: {{t.card}}; border: 1px solid {{t.lineStrong}}; border-radius: 999px; padding: 6px 6px 6px 16px; box-shadow: 0 4px 12px rgba(15,23,42,0.08);"><span style="flex-grow: 1; font-size: 14px; color: {{t.faint}};">Ask about Delhi’s air quality…</span><div style="width: 38px; height: 38px; border-radius: 999px; background: {{t.primaryC}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex: none;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.send }}"></path></svg></div></div></div></div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+
+  isDark() {
+    return (this.state && this.state.dark !== null && this.state.dark !== undefined)
+      ? this.state.dark : (this.props.dark ?? false);
+  }
+
+  /* index.html :root and [data-theme="dark"] tokens. */
+  theme(dark) {
+    return dark
+      ? { bg: '#0F172A', card: '#1E293B', track: '#0F172A', field: '#0F172A', ink: '#F1F5F9', ink2: '#CBD5E1',
+          muted: '#94A3B8', faint: '#64748B', outline: '#94A3B8', line: '#334155', lineSoft: '#273449',
+          lineStrong: '#475569', primary: '#10B981', primaryC: '#059669', emerald: '#34D399', pfixed: '#A7F3D0',
+          onPfixed: '#064E3B', pfixedSoft: 'rgba(16,185,129,0.14)', hdrA: '#064E3B', hdrB: '#065F46',
+          skyBg: 'rgba(56,189,248,0.15)', skyInk: '#7DD3FC', dialInk: '#0F172A', tileInk: '#0F172A' }
+      : { bg: '#F8FAFC', card: '#FFFFFF', track: '#F2F3FF', field: '#F1F5F9', ink: '#0F172A', ink2: '#334155',
+          muted: '#64748B', faint: '#94A3B8', outline: '#6D7A72', line: '#E2E8F0', lineSoft: '#F1F5F9',
+          lineStrong: '#CBD5E1', primary: '#006948', primaryC: '#00855D', emerald: '#059669', pfixed: '#85F8C4',
+          onPfixed: '#005137', pfixedSoft: '#ECFDF5', hdrA: '#006948', hdrB: '#00855D',
+          skyBg: '#E0F2FE', skyInk: '#0369A1', dialInk: '#FFFFFF', tileInk: '#FFFFFF' };
+  }
+
+  /* CPCB bands with their -bg / -line / -ink tints, light then dark. */
+  bandList(dark) {
+    const rows = [
+      ['Good',         '0–50',    50,   '#16A34A', '#F0FDF4', '#DCFCE7', '#166534', '#4ADE80', 'rgba(74,222,128,0.10)',  'rgba(74,222,128,0.28)',  '#BBF7D0'],
+      ['Satisfactory', '51–100',  100,  '#65A30D', '#F7FEE7', '#ECFCCB', '#3F6212', '#A3E635', 'rgba(163,230,53,0.10)',  'rgba(163,230,53,0.28)',  '#D9F99D'],
+      ['Moderate',     '101–200', 200,  '#D97706', '#FFFBEB', '#FEF3C7', '#92400E', '#FBBF24', 'rgba(251,191,36,0.10)',  'rgba(251,191,36,0.28)',  '#FDE68A'],
+      ['Poor',         '201–300', 300,  '#EA580C', '#FFF7ED', '#FFEDD5', '#9A3412', '#FB923C', 'rgba(251,146,60,0.10)',  'rgba(251,146,60,0.28)',  '#FED7AA'],
+      ['Very Poor',    '301–400', 400,  '#DC2626', '#FEF2F2', '#FEE2E2', '#991B1B', '#F87171', 'rgba(248,113,113,0.10)', 'rgba(248,113,113,0.28)', '#FECACA'],
+      ['Severe',       '401+',    9999, '#701A75', '#FDF4FF', '#FAE8FF', '#701A75', '#E879F9', 'rgba(232,121,249,0.10)', 'rgba(232,121,249,0.28)', '#F5D0FE'],
+    ];
+    return rows.map((r) => ({ label: r[0], range: r[1], max: r[2],
+      color: dark ? r[7] : r[3], bg: dark ? r[8] : r[4], line: dark ? r[9] : r[5], ink: dark ? r[10] : r[6] }));
+  }
+
+  band(v, dark) {
+    const list = this.bandList(dark);
+    return list.find((b) => v <= b.max) || list[list.length - 1];
+  }
+
+  alpha(hex, a) {
+    const h = String(hex).replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return hex;
+    const n = parseInt(h, 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  /* color-mix(in srgb, c 78%, #000) */
+  darken(hex) {
+    const h = String(hex).replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return hex;
+    const n = parseInt(h, 16), f = (c) => Math.round(c * 0.78);
+    return 'rgb(' + f((n >> 16) & 255) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')';
+  }
+
+  /* Outline strokes standing in for the app's Material Symbols (FILL 0), so
+     PNG/PDF export never shows ligature words instead of icons. */
+  icons() {
+    return {
+      leaf: 'M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12',
+      moon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z',
+      sun: 'M12 4v2 M12 18v2 M4 12H2 M22 12h-2 M6.3 6.3 4.9 4.9 M19.1 4.9l-1.4 1.4 M6.3 17.7l-1.4 1.4 M17.7 17.7l1.4 1.4 M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z',
+      warning: 'M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2',
+      satellite: 'M13 7 9 3 5 7l4 4 M17 11l4 4-4 4-4-4 M8 12l4 4 6-6-4-4-6 6z M16 8l3-3 M9 21a6 6 0 0 0-6-6',
+      bars: 'M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3',
+      calendar: 'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+      sms: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z M8 9h8 M8 13h5',
+      predict: 'M12 3v3 M12 18v3 M3 12h3 M18 12h3 M5.6 5.6l2.1 2.1 M16.3 16.3l2.1 2.1 M5.6 18.4l2.1-2.1 M16.3 7.7l2.1-2.1 M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+      robot: 'M12 8V4H8 M4 8h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z M2 14h2 M20 14h2 M15 13v2 M9 13v2',
+      send: 'M22 2 11 13 M22 2l-7 20-4-9-9-4 20-7z',
+      person: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+      mask: 'M3 11c0-2 1-3 3-3.5 2-.5 4-1 6-1s4 .5 6 1c2 .5 3 1.5 3 3.5 0 4-4 8-9 8s-9-4-9-8z M8 12h8',
+      window: 'M4 4h16v16H4z M12 4v16 M4 12h16',
+      people: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1 M12.5 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0z M21 20v-1a4 4 0 0 0-3-3.9 M16.5 4.1a4 4 0 0 1 0 5.8',
+      purify: 'M3 8h12a3 3 0 1 0-3-3 M3 16h9a3 3 0 1 1-3 3 M3 12h16',
+      medical: 'M12 8v8 M8 12h8 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+      ban: 'M4.9 4.9l14.2 14.2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+      triangle: 'M12 5 20 19H4z',
+    };
+  }
+
+  adviceFor(v) {
+    if (v <= 50)  return 'Clear air today. Windows open, and take the long way round.';
+    if (v <= 100) return 'A good day to be outside. Morning air is at its cleanest.';
+    if (v <= 200) return 'Fine before nine. Keep long walks short after that, especially for children and anyone with asthma.';
+    if (v <= 300) return 'Shorten the school run and keep windows shut by evening. A mask is worth it outdoors.';
+    if (v <= 400) return 'Stay in today. The air is serious — a respirator if you must go out, and run a purifier indoors.';
+    return 'Do not go out. This is an emergency level: seek help for any breathing trouble, chest pain or dizziness.';
+  }
+
+  advisory(v) {
+    if (v <= 100) return null;
+    if (v <= 200) return { title: 'Moderate Air Quality', msg: 'Sensitive groups (children, elderly, asthma patients) should limit outdoor time. Others can continue normal activities.' };
+    if (v <= 300) return { title: 'Poor Air Quality', msg: 'Everyone may feel discomfort. Wear an N95 mask outdoors and keep windows closed.' };
+    if (v <= 400) return { title: 'Very Poor Air — Stay Indoors', msg: 'Serious risk for everyone. Keep windows and doors closed; children, elderly and pregnant women should stay indoors.' };
+    return { title: 'Severe — Health Emergency', msg: 'Avoid all outdoor activity. Seek medical help for breathing trouble, chest pain or dizziness.' };
+  }
+
+  /* WARN_FROM = 200, as in app.js. */
+  warningsFor(v, b) {
+    if (v <= 200) return [];
+    const ic = this.icons();
+    const w = [
+      { icon: ic.mask,   text: 'Wear an N95 mask outdoors — a cloth mask will not filter this.' },
+      { icon: ic.window, text: 'Keep windows and doors closed, especially in the evening.' },
+      { icon: ic.people, text: 'Children, elderly and pregnant women should stay indoors.' },
+    ];
+    if (v > 300) w.push(
+      { icon: ic.purify,  text: 'Run an air purifier, or sit in one room with the doors shut.' },
+      { icon: ic.medical, text: 'Seek medical help for breathing trouble, chest pain or dizziness.' });
+    if (v > 400) w.push({ icon: ic.ban, text: 'No outdoor activity at all. This is a health emergency.' });
+    return w.map((x) => ({ ...x, color: b.color, line: b.line, bg: b.bg }));
+  }
+
+  /* Everything the reading card and advisory strip need for one value. */
+  readingFor(value, dark, t, meta) {
+    const b = this.band(value, dark);
+    const adv = this.advisory(value);
+    const warnings = this.warningsFor(value, b);
+    return {
+      b, value,
+      label: meta.label, dot: meta.dot, dateShort: meta.dateShort, basis: meta.basis,
+      dialBg: 'linear-gradient(135deg, ' + b.color + ', ' + this.darken(b.color) + ')',
+      dialShadow: '0 0 0 4px ' + b.line + ', 0 6px 16px ' + this.alpha(b.color, 0.25),
+      advice: this.adviceFor(value),
+      hasAdv: !!adv, adv: adv || { title: '', msg: '' },
+      hasWarnings: warnings.length > 0, warnings,
+      warnHead: 'What to do at ' + b.label.toLowerCase() + ' levels',
+    };
+  }
+
+  headVals(t, dark, active) {
+    const ic = this.icons();
+    return {
+      ic,
+      themeIcon: dark ? ic.sun : ic.moon,
+      nav: ['Today', 'Ward Map', 'Forecast', 'AI Chat', 'Analytics'].map((label) => ({
+        label,
+        bg: label === active ? t.pfixed : 'transparent',
+        color: label === active ? t.onPfixed : 'rgba(255,255,255,0.82)',
+      })),
+      toggleDark: () => this.setState({ dark: !dark }),
+    };
+  }
+
+  /* .seg button / .seg button.on */
+  segOn(t, on) {
+    return { bg: on ? t.card : 'transparent', color: on ? t.primary : t.outline,
+             weight: on ? '700' : '500', shadow: on ? '0 1px 2px rgba(15,23,42,0.1)' : 'none' };
+  }
+
+  /* app.js smooth(): Catmull-Rom as cubic beziers. */
+  smooth(pts) {
+    let d = 'M ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += ' C ' + (p1.x + (p2.x - p0.x) / 6).toFixed(1) + ' ' + (p1.y + (p2.y - p0.y) / 6).toFixed(1) +
+           ', ' + (p2.x - (p3.x - p1.x) / 6).toFixed(1) + ' ' + (p2.y - (p3.y - p1.y) / 6).toFixed(1) +
+           ', ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+
+  constructor(props) { super(props); this.state = { dark: null, lang: 0 }; }
+
+  renderVals() {
+    const dark = this.isDark();
+    const t = this.theme(dark);
+    const langs = [
+      { label: 'English', font: "'Inter', sans-serif" },
+      { label: 'हिंदी', font: "'Noto Sans Devanagari', sans-serif" },
+      { label: 'ਪੰਜਾਬੀ', font: "'Noto Sans Gurmukhi', sans-serif" },
+      { label: 'اردو', font: "'Noto Naskh Arabic', serif" },
+    ];
+    /* Openers are the app's. The question and reply are a sample exchange,
+       shown in the selected language as the assistant would answer. */
+    const copy = [
+      { opener: 'Hello! I’m Saans, your Delhi air quality assistant. Ask me anything — I’ll answer in whichever language you write in.',
+        question: 'Is it safe for my child?',
+        reply: 'Today reads 95 — Satisfactory, one of the easier days. Outdoor play is fine; mornings are cleanest. If your child has asthma, keep the inhaler to hand.' },
+      { opener: 'दिल्ली की हवा के बारे में कुछ भी पूछिए — आप जिस भाषा में लिखेंगे, मैं उसी में जवाब दूँगा।',
+        question: 'क्या मेरे बच्चे के लिए सुरक्षित है?',
+        reply: 'आज AQI 95 है — संतोषजनक। बाहर खेलना ठीक है, सुबह की हवा सबसे साफ़ रहती है। अगर बच्चे को अस्थमा है, तो इनहेलर साथ रखें।' },
+      { opener: 'ਦਿੱਲੀ ਦੀ ਹਵਾ ਬਾਰੇ ਕੁਝ ਵੀ ਪੁੱਛੋ — ਜਿਸ ਭਾਸ਼ਾ ਵਿੱਚ ਤੁਸੀਂ ਲਿਖੋਗੇ, ਮੈਂ ਉਸੇ ਵਿੱਚ ਜਵਾਬ ਦਿਆਂਗਾ।',
+        question: 'ਕੀ ਮੇਰੇ ਬੱਚੇ ਲਈ ਸੁਰੱਖਿਅਤ ਹੈ?',
+        reply: 'ਅੱਜ AQI 95 ਹੈ — ਤਸੱਲੀਬਖ਼ਸ਼। ਬਾਹਰ ਖੇਡਣਾ ਠੀਕ ਹੈ, ਸਵੇਰ ਦੀ ਹਵਾ ਸਭ ਤੋਂ ਸਾਫ਼ ਹੁੰਦੀ ਹੈ। ਜੇ ਬੱਚੇ ਨੂੰ ਦਮਾ ਹੈ, ਤਾਂ ਇਨਹੇਲਰ ਨਾਲ ਰੱਖੋ।' },
+      { opener: 'دہلی کی ہوا کے بارے میں کچھ بھی پوچھیں — آپ جس زبان میں لکھیں گے، میں اسی میں جواب دوں گا۔',
+        question: 'کیا میرے بچے کے لیے محفوظ ہے؟',
+        reply: 'آج AQI 95 ہے — تسلی بخش۔ باہر کھیلنا ٹھیک ہے، صبح کی ہوا سب سے صاف ہوتی ہے۔ اگر بچے کو دمہ ہے تو انہیلر ساتھ رکھیں۔' },
+    ];
+    const sel = this.state.lang;
+    return {
+      t, ...this.headVals(t, dark, 'AI Chat'),
+      font: langs[sel].font, dir: sel === 3 ? 'rtl' : 'ltr',
+      opener: copy[sel].opener, question: copy[sel].question, reply: copy[sel].reply,
+      langs: langs.map((l, i) => {
+        const on = i === sel;
+        return { label: l.label, font: l.font,
+                 border: on ? t.primaryC : t.line, bg: on ? t.pfixedSoft : t.card,
+                 color: on ? t.primaryC : t.ink2, weight: on ? '600' : '500',
+                 pick: () => this.setState({ lang: i }) };
+      }),
+      sugs: [{ text: 'When is the air worst?' }, { text: 'Is it safe for my child?' }, { text: 'Best time to run?' }],
+    };
+  }
+}
+</script>
+</body>
+</html>

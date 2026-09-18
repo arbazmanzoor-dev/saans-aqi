@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Gurmukhi:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F5241; text-decoration: none; } a:hover { color: #143A2E; }
+    .num { font-family: 'Instrument Serif', Georgia, serif; font-variant-numeric: tabular-nums; }
+    .body { font-family: 'Karla', 'Helvetica Neue', sans-serif; }
+    .eyebrow { font-family: 'Karla', sans-serif; font-size: 11px; font-weight: 600;
+               letter-spacing: 0.14em; text-transform: uppercase; }
+    .tap { cursor: pointer; border: 0; background: none; font-family: 'Karla', sans-serif; }
+  </style>
+</helmet>
+
+<div class="body" style="width: 1280px; height: 900px; background: {{t.bg}}; color: {{t.ink}};
+            display: flex; flex-direction: column; overflow: hidden;">
+  <!-- site header -->
+  <div style="border-bottom: 1px solid {{t.rule}}; background: {{t.bg}};">
+    <div style="display: flex; align-items: center; gap: 28px; height: 68px;
+                width: 996px; margin: 0 auto;">
+      <div style="display: flex; align-items: baseline; gap: 7px; flex: none;">
+        <span class="num" style="font-size: 25px;">Saans</span>
+        <span class="eyebrow" style="color: {{t.muted}};">AQI</span>
+      </div>
+      <div style="display: flex; gap: 2px; flex-grow: 1;">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <span style="padding: 8px 14px; border-radius: 999px; font-size: 13.5px;
+                       font-weight: {{ n.weight }}; color: {{ n.color }};
+                       background: {{ n.bg }};">{{ n.label }}</span>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; flex: none;">
+        <button onClick="{{ toggleDark }}" style="width: 40px; height: 40px; border: 0;
+                background: none; cursor: pointer; color: {{t.muted}}; border-radius: 999px;
+                display: flex; align-items: center; justify-content: center;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="{{t.themeIcon}}"></path>
+          </svg>
+        </button>
+        <div style="width: 32px; height: 32px; border-radius: 999px; border: 1px solid {{t.rule}};
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 12px; font-weight: 600; color: {{t.muted}};">A</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="width: 996px; margin: 0 auto; padding-top: 44px;">
+
+    <!-- the reading, beside what to do about it -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px;
+                align-items: center;">
+      <div style="text-align: center;">
+        <div style="position: relative; display: flex; justify-content: center;">
+          <svg width="400" height="240" viewBox="0 0 280 168" style="display: block;">
+            <sc-for list="{{ segs }}" as="seg" hint-placeholder-count="6">
+              <path d="{{seg.d}}" fill="none" stroke="{{seg.color}}" stroke-width="7"
+                    opacity="{{seg.op}}"></path>
+            </sc-for>
+            <line x1="{{ mark.x1 }}" y1="{{ mark.y1 }}" x2="{{ mark.x2 }}" y2="{{ mark.y2 }}"
+                  stroke="{{ band.color }}" stroke-width="2.5" stroke-linecap="round"></line>
+            <circle cx="{{ mark.cx }}" cy="{{ mark.cy }}" r="5.5" fill="{{ t.bg }}"
+                    stroke="{{ band.color }}" stroke-width="2.5"></circle>
+          </svg>
+          <div style="position: absolute; top: 86px; left: 0; right: 0;">
+            <div class="num" style="font-size: 88px; line-height: 0.86;">{{ value }}</div>
+            <div class="eyebrow" style="color: {{ band.color }}; margin-top: 12px;">{{ band.label }}</div>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+          <span class="eyebrow" style="color: {{t.faint}};">0</span>
+          <span class="eyebrow" style="color: {{t.faint}};">500</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="num" style="margin: 0; font-size: 28px; line-height: 1.4; text-wrap: pretty;">{{ advice }}</p>
+        <p style="margin: 12px 0 0; font-size: 13.5px; line-height: 1.55; color: {{t.muted}};">{{ basis }}</p>
+
+        <sc-if value="{{ hasWarnings }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top: 26px; border: 1px solid {{t.rule}}; border-radius: 4px;
+                      overflow: hidden;">
+            <div class="eyebrow" style="padding: 13px 17px 11px; color: {{ band.color }};
+                        border-bottom: 1px solid {{t.rule}};">{{ warnHead }}</div>
+            <sc-for list="{{ warnings }}" as="w" hint-placeholder-count="3">
+              <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 17px;
+                          border-top: 1px solid {{t.rule}};">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ band.color }}"
+                     stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"
+                     style="flex: none; margin-top: 1px;"><path d="{{ w.icon }}"></path></svg>
+                <span style="font-size: 13px; line-height: 1.45;">{{ w.text }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- the week, and the city -->
+    <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 48px;
+                margin-top: 52px; align-items: start;">
+      <div>
+        <div class="eyebrow" style="color: {{t.muted}};">The week ahead</div>
+        <div style="display: flex; gap: 2px; margin-top: 12px;">
+          <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+            <button class="tap" onClick="{{ d.pick }}"
+                    style="flex: 1; display: flex; flex-direction: column; align-items: center;
+                           gap: 9px; padding: 8px 0 10px; border-radius: 10px;
+                           background: {{ d.selBg }};">
+              <span style="font-size: 11.5px; font-weight: 600; color: {{ d.labelColor }};">{{ d.label }}</span>
+              <span style="display: block; width: 6px; height: {{ d.barH }}; border-radius: 3px;
+                           background: {{ d.color }}; opacity: {{ d.barOp }};"></span>
+              <span class="num" style="font-size: 19px; color: {{ d.numColor }};">{{ d.aqi }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow" style="color: {{t.muted}};">Across the city</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px;">
+          <sc-for list="{{ stations }}" as="s" hint-placeholder-count="4">
+            <div style="display: flex; align-items: baseline; gap: 7px; padding: 8px 13px;
+                        border: 1px solid {{t.rule}}; border-radius: 999px;">
+              <span style="font-size: 12px; color: {{t.muted}};">{{ s.name }}</span>
+              <span class="num" style="font-size: 14px; color: {{ s.color }};">{{ s.aqi }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { day: 0, dark: null }; }
+
+  bandFor(v, dark) {
+    const bands = [
+      { max: 50,   label: 'Good',         light: '#2E7D4F', dark: '#4FA873' },
+      { max: 100,  label: 'Satisfactory', light: '#6B9A2E', dark: '#93BF47' },
+      { max: 200,  label: 'Moderate',     light: '#D4881A', dark: '#E5A63F' },
+      { max: 300,  label: 'Poor',         light: '#DB5F22', dark: '#EA7B42' },
+      { max: 400,  label: 'Very Poor',    light: '#C32A22', dark: '#DE5049' },
+      { max: 9999, label: 'Severe',       light: '#7B1D57', dark: '#B85088' },
+    ];
+    const b = bands.find((x) => v <= x.max);
+    return { label: b.label, color: dark ? b.dark : b.light };
+  }
+
+  theme(dark) {
+    return dark
+      ? { bg: '#14120F', card: '#1D1A16', ink: '#F2EDE4', muted: '#9A9186',
+          faint: '#5D564D', rule: '#2E2A24', sel: 'rgba(242,237,228,0.06)', accent: '#7FB39E',
+          themeIcon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z' }
+      : { bg: '#FAF7F1', card: '#FFFDF9', ink: '#1B1815', muted: '#6E675C',
+          faint: '#ADA496', rule: '#E7E0D4', sel: 'rgba(27,24,21,0.045)', accent: '#1F5241',
+          themeIcon: 'M12 4v2m0 12v2M4 12H2m20 0h-2M6.3 6.3 4.9 4.9m14.2 1.4 1.4-1.4M6.3 17.7l-1.4 1.4m14.2-1.4 1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z' };
+  }
+
+  navFor(t, active) {
+    return ['Today','Forecast','Ask','Patterns'].map((label) => ({
+      label,
+      color: label === active ? t.ink : t.muted,
+      weight: label === active ? '600' : '500',
+      bg: label === active ? t.sel : 'transparent',
+    }));
+  }
+
+  point(v, r) {
+    const a = Math.PI * (1 - Math.min(v, 500)/500);
+    return { x: 140 + r*Math.cos(a), y: 150 - r*Math.sin(a) };
+  }
+  arc(v1, v2, r) {
+    const p1 = this.point(v1, r), p2 = this.point(v2, r);
+    return 'M ' + p1.x.toFixed(1) + ' ' + p1.y.toFixed(1) +
+           ' A ' + r + ' ' + r + ' 0 0 1 ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+  }
+
+  renderVals() {
+    const dark = this.state.dark === null ? (this.props.dark ?? false) : this.state.dark;
+    const t = this.theme(dark);
+
+    const ICON = {
+      mask:    'M3 11c0-2 1-3 3-3.5 2-.5 4-1 6-1s4 .5 6 1c2 .5 3 1.5 3 3.5 0 4-4 8-9 8s-9-4-9-8z M8 12h8',
+      window:  'M4 4h16v16H4z M12 4v16 M4 12h16',
+      people:  'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1 M12.5 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0z M21 20v-1a4 4 0 0 0-3-3.9 M16.5 4.1a4 4 0 0 1 0 5.8',
+      purify:  'M3 8h12a3 3 0 1 0-3-3 M3 16h9a3 3 0 1 1-3 3 M3 12h16',
+      medical: 'M12 8v8 M8 12h8 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+      ban:     'M4.9 4.9l14.2 14.2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+    };
+    const warningsFor = (v) => {
+      if (v <= 200) return [];
+      const w = [
+        { icon: ICON.mask,   text: 'Wear an N95 mask outdoors — a cloth mask will not filter this.' },
+        { icon: ICON.window, text: 'Keep windows and doors closed, especially in the evening.' },
+        { icon: ICON.people, text: 'Children, elderly and pregnant women should stay indoors.' },
+      ];
+      if (v > 300) w.push(
+        { icon: ICON.purify,  text: 'Run an air purifier, or sit in one room with the doors shut.' },
+        { icon: ICON.medical, text: 'Seek medical help for breathing trouble, chest pain or dizziness.' });
+      if (v > 400) w.push({ icon: ICON.ban, text: 'No outdoor activity at all. This is a health emergency.' });
+      return w;
+    };
+
+    /* The app's own /api/week for 13-19 September. */
+    const raw = [
+      { label: 'Sun', aqi: 94 }, { label: 'Mon', aqi: 95 }, { label: 'Tue', aqi: 96 },
+      { label: 'Wed', aqi: 98 }, { label: 'Thu', aqi: 97 }, { label: 'Fri', aqi: 95 },
+      { label: 'Sat', aqi: 100 },
+    ];
+    const sel = this.state.day;
+    const days = raw.map((d, i) => {
+      const b = this.bandFor(d.aqi, dark);
+      const on = i === sel;
+      return { ...d, color: b.color,
+        barH: Math.round(20 + (d.aqi/500)*130) + 'px',
+        barOp: on ? '1' : '0.42',
+        selBg: on ? t.sel : 'transparent',
+        labelColor: on ? t.ink : t.muted,
+        numColor: on ? t.ink : t.muted,
+        pick: () => this.setState({ day: i }) };
+    });
+
+    const value = raw[sel].aqi;
+    const band = this.bandFor(value, dark);
+    const bounds = [0, 50, 100, 200, 300, 400, 500];
+    const segs = [];
+    for (let i = 0; i < 6; i++) {
+      segs.push({ d: this.arc(bounds[i]+3, bounds[i+1]-3, 112),
+                  color: this.bandFor(bounds[i]+1, dark).color,
+                  op: bounds[i] < value && value <= bounds[i+1] ? '1' : '0.22' });
+    }
+    const inner = this.point(value, 99), outer = this.point(value, 124), on = this.point(value, 112);
+    const warnings = warningsFor(value);
+    const when = ['Sunday 13','Monday 14','Tuesday 15','Wednesday 16','Thursday 17',
+                  'Friday 18','Saturday 19'][sel] + ' September';
+
+    return {
+      t, value, band, segs, days, warnings,
+      hasWarnings: warnings.length > 0,
+      warnHead: 'What to do at ' + band.label.toLowerCase() + ' levels',
+      advice: value <= 100
+        ? 'A good day to be outside. Morning air is at its cleanest.'
+        : 'Fine before nine. Keep long walks short after that, especially for children and anyone with asthma.',
+      basis: when + ' · modelled from 1,916 daily readings, 2020–2025',
+      mark: { x1: inner.x.toFixed(1), y1: inner.y.toFixed(1),
+              x2: outer.x.toFixed(1), y2: outer.y.toFixed(1),
+              cx: on.x.toFixed(1), cy: on.y.toFixed(1) },
+      stations: [
+        { name: 'Anand Vihar', aqi: 112, color: this.bandFor(112, dark).color },
+        { name: 'R.K. Puram', aqi: 94, color: this.bandFor(94, dark).color },
+        { name: 'Dwarka', aqi: 88, color: this.bandFor(88, dark).color },
+        { name: 'ITO', aqi: 103, color: this.bandFor(103, dark).color },
+      ],
+      nav: this.navFor(t, 'Today'),
+      toggleDark: () => this.setState({ dark: !dark }),
+    };
+  }
+}
+</script>
+</body>
+</html>

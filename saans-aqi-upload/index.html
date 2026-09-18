@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Saans AQI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Gurmukhi:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── Stitch "Saans AQI" system: Inter, emerald primary pair for the header
+      gradient, slate neutrals, CPCB bands with -50 / -100 / -800 tints ── */
+:root{
+  --bg:#F8FAFC; --card:#FFFFFF; --track:#F2F3FF; --field:#F1F5F9;
+  --ink:#0F172A; --ink2:#334155; --muted:#64748B; --faint:#94A3B8; --outline:#6D7A72;
+  --line:#E2E8F0; --line-soft:#F1F5F9; --line-strong:#CBD5E1;
+  --primary:#006948; --primary-c:#00855D; --emerald:#059669;
+  --pfixed:#85F8C4; --on-pfixed:#005137; --pfixed-soft:#ECFDF5;
+  --hdr-a:#006948; --hdr-b:#00855D;
+  --sky-bg:#E0F2FE; --sky-ink:#0369A1;
+  --dial-ink:#FFFFFF; --tile-ink:#FFFFFF;
+  --good:#16A34A;     --good-bg:#F0FDF4;     --good-line:#DCFCE7;     --good-ink:#166534;
+  --satisf:#65A30D;   --satisf-bg:#F7FEE7;   --satisf-line:#ECFCCB;   --satisf-ink:#3F6212;
+  --moderate:#D97706; --moderate-bg:#FFFBEB; --moderate-line:#FEF3C7; --moderate-ink:#92400E;
+  --poor:#EA580C;     --poor-bg:#FFF7ED;     --poor-line:#FFEDD5;     --poor-ink:#9A3412;
+  --vpoor:#DC2626;    --vpoor-bg:#FEF2F2;    --vpoor-line:#FEE2E2;    --vpoor-ink:#991B1B;
+  --severe:#701A75;   --severe-bg:#FDF4FF;   --severe-line:#FAE8FF;   --severe-ink:#701A75;
+}
+[data-theme="dark"]{
+  --bg:#0F172A; --card:#1E293B; --track:#0F172A; --field:#0F172A;
+  --ink:#F1F5F9; --ink2:#CBD5E1; --muted:#94A3B8; --faint:#64748B; --outline:#94A3B8;
+  --line:#334155; --line-soft:#273449; --line-strong:#475569;
+  --primary:#10B981; --primary-c:#059669; --emerald:#34D399;
+  --pfixed:#A7F3D0; --on-pfixed:#064E3B; --pfixed-soft:rgba(16,185,129,0.14);
+  --hdr-a:#064E3B; --hdr-b:#065F46;
+  --sky-bg:rgba(56,189,248,0.15); --sky-ink:#7DD3FC;
+  --dial-ink:#0F172A; --tile-ink:#0F172A;
+  --good:#4ADE80;     --good-bg:rgba(74,222,128,0.10);   --good-line:rgba(74,222,128,0.28);   --good-ink:#BBF7D0;
+  --satisf:#A3E635;   --satisf-bg:rgba(163,230,53,0.10); --satisf-line:rgba(163,230,53,0.28); --satisf-ink:#D9F99D;
+  --moderate:#FBBF24; --moderate-bg:rgba(251,191,36,0.10); --moderate-line:rgba(251,191,36,0.28); --moderate-ink:#FDE68A;
+  --poor:#FB923C;     --poor-bg:rgba(251,146,60,0.10);   --poor-line:rgba(251,146,60,0.28);   --poor-ink:#FED7AA;
+  --vpoor:#F87171;    --vpoor-bg:rgba(248,113,113,0.10); --vpoor-line:rgba(248,113,113,0.28); --vpoor-ink:#FECACA;
+  --severe:#E879F9;   --severe-bg:rgba(232,121,249,0.10); --severe-line:rgba(232,121,249,0.28); --severe-ink:#F5D0FE;
+}
+
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;
+}
+#app{display:flex;flex-direction:column;min-height:100vh}
+.shell{width:100%;max-width:1060px;margin:0 auto;padding:0 32px}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hidden{display:none!important}
+.ms{
+  font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-size:20px;
+  line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;
+  direction:ltr;-webkit-font-smoothing:antialiased;user-select:none;
+  font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 24;
+}
+
+/* ── header ── */
+.masthead{position:sticky;top:0;z-index:30;background:linear-gradient(90deg,var(--hdr-a),var(--hdr-b));box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.mast-inner{display:flex;align-items:center;gap:22px;height:56px;max-width:1060px;margin:0 auto;padding:0 32px}
+.wordmark{display:flex;align-items:center;gap:10px;color:#fff;flex:none}
+.leaf{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}
+.wordmark b{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.nav{display:flex;gap:4px;flex-grow:1;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.navlink{
+  border:0;background:none;cursor:pointer;padding:7px 14px;border-radius:999px;
+  font:600 13px 'Inter',sans-serif;color:rgba(255,255,255,.82);white-space:nowrap;transition:background .15s,color .15s;
+}
+.navlink:hover{background:rgba(255,255,255,.12);color:#fff}
+.navlink.on{background:var(--pfixed);color:var(--on-pfixed)}
+.mast-actions{display:flex;align-items:center;gap:6px;flex:none;position:relative}
+.icon-btn{width:36px;height:36px;border:0;background:none;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;border-radius:999px}
+.icon-btn:hover{background:rgba(255,255,255,.14)}
+.avatar{width:32px;height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.2);color:#fff;font:700 13px 'Inter',sans-serif;cursor:pointer}
+.menu{position:absolute;top:44px;right:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:200px;display:none;z-index:40;box-shadow:0 10px 24px rgba(15,23,42,.12)}
+.menu.open{display:block}
+.menu-name{font-size:14px;font-weight:700;color:var(--ink)}
+.menu-email{font-size:11.5px;color:var(--muted);margin-top:2px}
+.menu button{margin-top:10px;width:100%;padding:8px;border:0;border-radius:8px;background:var(--vpoor-line);color:var(--vpoor-ink);font:600 13px 'Inter',sans-serif;cursor:pointer}
+
+/* ── pages and layout ── */
+.page{display:none;flex-grow:1;padding:24px 0 56px}
+.page.active{display:block}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.page-head h1{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+.lead-sub{font-size:13.5px;line-height:1.55;color:var(--muted);max-width:70ch}
+.g2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.g2b{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}
+.narrow{max-width:720px;margin:0 auto}
+
+/* ── cards ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.05);padding:16px}
+.card-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px}
+.card-sub{font-size:12px;color:var(--muted);margin:-6px 0 12px;line-height:1.5}
+.ti{width:28px;height:28px;border-radius:8px;background:var(--pfixed-soft);color:var(--primary-c);display:flex;align-items:center;justify-content:center;flex:none}
+.ti-lg{width:36px;height:36px;border-radius:10px;background:var(--pfixed-soft);color:var(--primary-c);display:flex;align-items:center;justify-content:center;flex:none}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);font-size:11.5px;font-weight:500;color:var(--ink2);white-space:nowrap}
+.pill b{font-weight:700}
+
+/* ── advisory strip ── */
+.sos{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:14px;border:1px solid;border-left-width:5px;box-shadow:0 1px 2px rgba(15,23,42,.05);margin-bottom:16px}
+.sos .ic{flex:none;width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+.sos h3{font-size:14px;font-weight:700}
+.sos p{font-size:13px;line-height:1.5;margin-top:3px}
+
+/* ── the reading card ── */
+.aqi-card{padding:0;overflow:hidden}
+.aqi-top{height:6px}
+.aqi-body{padding:16px}
+.aqi-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.live-dot{width:8px;height:8px;border-radius:999px;display:inline-block}
+.aqi-main{display:flex;align-items:center;gap:20px;margin-top:14px}
+.dial{flex:none;width:112px;height:112px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dial-ink);transition:background .4s}
+.dial b{font-size:40px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.dial span{font-size:10px;font-weight:700;letter-spacing:.08em;opacity:.9;margin-top:3px}
+.band-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.band-name{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.cpcb{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.advice{margin-top:6px;font-size:14px;line-height:1.55;color:var(--ink2)}
+.basis{margin-top:8px;font-size:11.5px;line-height:1.45;color:var(--muted);display:flex;gap:5px;align-items:flex-start}
+.basis .ms{margin-top:1px}
+.warn-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.warn-head{grid-column:1/-1;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.warn{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:10px 12px;border:1px solid}
+.warn .ms{flex:none;margin-top:1px}
+.warn .wt{font-size:12.5px;line-height:1.45;font-weight:500;color:var(--ink)}
+.aqi-foot{border-top:1px solid var(--line-soft);margin-top:14px;padding-top:12px}
+.stations{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ── scale guide ── */
+.scale{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{border-radius:12px;padding:10px;color:var(--tile-ink);min-height:68px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.tile small{font-size:11px;font-weight:600;opacity:.92}
+.tile b{font-size:13px;font-weight:700;line-height:1.15}
+.tile em{display:block;font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.9;margin-top:2px}
+.scale-note{margin-top:10px;font-size:11.5px;color:var(--muted)}
+
+/* ── week strip ── */
+.week-row{display:flex;gap:6px}
+.daycol{flex:1;border:1px solid transparent;background:none;cursor:pointer;border-radius:12px;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;transition:background .14s}
+.daycol:hover{background:var(--field)}
+.daycol.on{background:var(--field);border-color:var(--line)}
+.daycol .wd{font-size:11px;font-weight:600;color:var(--muted)}
+.daycol .bar{display:block;width:6px;border-radius:3px;opacity:.45}
+.daycol.on .bar{opacity:1}
+.daycol .v{font-size:15px;font-weight:700;color:var(--ink2);font-variant-numeric:tabular-nums}
+.daycol.on .wd,.daycol.on .v{color:var(--ink)}
+.daycol .mk{display:block;width:4px;height:4px;border-radius:999px;background:var(--emerald);margin-top:3px}
+
+/* ── SMS sign-up ── */
+.alert-why{font-size:13px;line-height:1.55;color:var(--ink2)}
+.alert-form{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.alert-row{display:flex;gap:8px}
+.input{flex-grow:1;min-width:0;padding:11px 14px;border-radius:12px;background:var(--field);border:1px solid transparent;font:500 14px 'Inter',sans-serif;color:var(--ink);outline:none;transition:.15s}
+.input::placeholder{color:var(--faint)}
+.input:focus{border-color:var(--emerald);background:var(--card)}
+.btn{flex:none;border:0;border-radius:999px;background:var(--primary);color:#fff;padding:11px 18px;font:700 13.5px 'Inter',sans-serif;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.1);transition:background .15s}
+.btn:hover{background:var(--primary-c)}
+.btn:disabled{opacity:.55;cursor:default}
+.alert-note{font-size:11.5px;line-height:1.5;color:var(--muted)}
+.msg{font-size:12.5px;font-weight:600;display:none}
+.msg.show{display:block}
+.msg.ok{color:var(--emerald)}
+.msg.err{color:var(--vpoor)}
+
+/* ── forecast ── */
+.seg{display:flex;gap:2px;background:var(--track);padding:4px;border-radius:999px;border:1px solid var(--line-soft)}
+.seg button{flex:1;border:0;background:none;cursor:pointer;padding:7px 12px;border-radius:999px;font:500 12.5px 'Inter',sans-serif;color:var(--outline);white-space:nowrap;transition:.15s}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--card);color:var(--primary);font-weight:700;box-shadow:0 1px 2px rgba(15,23,42,.1)}
+.panel{border-radius:12px;padding:18px 16px;border:1px solid;text-align:center;margin-top:14px}
+.fc-num{font-size:64px;font-weight:800;line-height:1;letter-spacing:-.03em;margin-top:6px}
+.fc-band{font-size:18px;font-weight:700;margin-top:4px}
+.ci{margin:16px auto 0;max-width:280px}
+.ci-track{position:relative;height:4px;background:rgba(100,116,139,.18);border-radius:2px}
+.ci-span{position:absolute;top:0;bottom:0;opacity:.4;border-radius:2px}
+.ci-mid{position:absolute;top:-3px;width:2px;height:10px;border-radius:1px}
+.ci-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted)}
+.scrub-row{display:flex;align-items:flex-end;justify-content:space-between;gap:4px;height:140px;margin-top:18px;border-bottom:1px solid var(--line)}
+.scrub-col{flex:1;border:0;background:none;cursor:pointer;padding:0;display:flex;align-items:flex-end;justify-content:center;height:100%;font-family:inherit}
+.scrub-col .bar{display:block;width:100%;max-width:18px;border-radius:4px 4px 0 0;border:2px solid;border-bottom:0;opacity:.55;transition:opacity .15s}
+.scrub-col.on .bar,.scrub-col:hover .bar{opacity:1}
+.scrub-lbls{display:flex;justify-content:space-between;gap:4px;margin-top:6px}
+.scrub-lbls span{flex:1;text-align:center;font-size:10px;font-weight:600;color:var(--faint);white-space:nowrap}
+.scrub-lbls span.on{color:var(--ink)}
+.hint{margin-top:12px;font-size:12px;color:var(--muted);text-align:center}
+.note{margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:13px;line-height:1.55;color:var(--ink2)}
+.year-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mtile{border:1px solid;border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font-family:inherit;transition:transform .12s}
+.mtile:hover{transform:translateY(-1px)}
+.mtile.on{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--emerald)}
+.mtile small{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.mtile b{font-size:22px;font-weight:800;line-height:1.15;margin-top:2px}
+.mtile i{font-style:normal;font-size:10.5px;font-weight:600;margin-top:1px}
+
+/* ── ask ── */
+.chat-bar{padding:14px}
+.lang-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lang{border:1px solid var(--line);background:var(--card);color:var(--ink2);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer}
+.lang.on{border-color:var(--primary-c);background:var(--pfixed-soft);color:var(--primary-c);font-weight:600}
+.sug-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sug{border:1px solid var(--line);background:var(--field);color:var(--ink2);padding:5px 12px;border-radius:999px;font:400 12.5px 'Inter',sans-serif;cursor:pointer}
+.sug:hover{border-color:var(--line-strong)}
+.msgs{display:flex;flex-direction:column;gap:14px;padding:18px 2px;min-height:320px}
+.row{display:flex;gap:10px;align-items:flex-start}
+.row.you{flex-direction:row-reverse}
+.av{flex:none;width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.row.ai .av{background:var(--pfixed-soft);color:var(--primary-c)}
+.row.you .av{background:var(--sky-bg);color:var(--sky-ink)}
+.bubble{max-width:78%;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.6;box-shadow:0 1px 2px rgba(15,23,42,.05);white-space:pre-line}
+.row.ai .bubble{background:var(--card);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:4px}
+.row.you .bubble{background:var(--primary-c);color:#fff;border-bottom-right-radius:4px;font-weight:500}
+.bubble.pending{color:var(--muted)}
+.composer{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line-strong);border-radius:999px;padding:6px 6px 6px 16px;box-shadow:0 4px 12px rgba(15,23,42,.08)}
+.composer:focus-within{border-color:var(--primary-c)}
+.composer input{flex-grow:1;min-width:0;border:0;background:none;outline:none;font:400 14px 'Inter',sans-serif;color:var(--ink)}
+.composer input::placeholder{color:var(--faint)}
+.send{width:38px;height:38px;border:0;border-radius:999px;background:var(--primary-c);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.send:hover{background:var(--primary)}
+
+/* ── patterns ── */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{text-align:center;padding:18px 12px}
+.stat b{display:block;font-size:34px;font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat .l{font-size:13px;font-weight:700;color:var(--ink);margin-top:6px}
+.stat .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.bars{position:relative;height:190px;display:flex;align-items:flex-end;gap:6px;padding:0 4px}
+.grid-line{position:absolute;left:0;right:0;height:1px;background:var(--line-soft)}
+.mbar{flex:1;display:flex;justify-content:center;align-items:flex-end;height:100%;position:relative}
+.mbar i{display:block;width:100%;max-width:22px;border-radius:4px 4px 0 0;border:2px solid;border-bottom:0}
+.axis{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;color:var(--muted)}
+.axis span{flex:1;text-align:center}
+.legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);font-size:11px;font-weight:500;color:var(--ink2)}
+.legend>span{display:inline-flex;align-items:center;gap:6px}
+.lg-dot{width:10px;height:10px;border-radius:999px;display:inline-block}
+.lg-dash{width:14px;border-bottom:2px dashed var(--moderate);display:inline-block}
+.lg-tri{font-style:normal;color:var(--muted);font-size:12px}
+.viewer-row{display:flex;gap:8px}
+.sel-wrap{flex:1;position:relative}
+.select{width:100%;appearance:none;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:9px 32px 9px 12px;font:600 12.5px 'Inter',sans-serif;color:var(--ink);cursor:pointer;outline:none}
+.select:focus{border-color:var(--emerald)}
+.sel-wrap::after{content:'';position:absolute;right:14px;top:50%;width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.prov{margin-top:20px;font-size:11.5px;color:var(--faint)}
+
+/* ── tomorrow ── */
+.tmr{display:flex;align-items:center;gap:20px}
+.tmr-dial{flex:none;width:84px;height:84px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dial-ink)}
+.tmr-dial b{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.tmr-dial span{font-size:9.5px;font-weight:700;letter-spacing:.08em;opacity:.9;margin-top:2px}
+.tmr-vs{font-size:13px;font-weight:700}
+
+/* ── ward map ── */
+.map-grid{grid-template-columns:minmax(0,1.9fr) minmax(0,1fr)}
+.map-side{display:flex;flex-direction:column;gap:16px}
+.map-card{padding:0;overflow:hidden}
+.ward-map{height:560px;background:var(--field)}
+.leaflet-container{font-family:'Inter',system-ui,sans-serif}
+.map-legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 16px;border-top:1px solid var(--line-soft);font-size:11px;font-weight:500;color:var(--ink2)}
+.map-legend span{display:inline-flex;align-items:center;gap:5px}
+.map-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.wd-head{display:flex;align-items:center;gap:14px}
+.wd-dial{flex:none;width:64px;height:64px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:var(--dial-ink);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.wd-name{font-size:16px;font-weight:700;line-height:1.3}
+.wd-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.wd-note{margin-top:12px;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.rank-row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;cursor:pointer;padding:8px 6px;border-radius:10px;font:inherit;color:var(--ink);text-align:left}
+.rank-row:hover{background:var(--field)}
+.rank-row .rk{width:18px;font-size:11px;font-weight:700;color:var(--faint)}
+.rank-row .nm{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-row b{font-size:13px;font-variant-numeric:tabular-nums}
+.map-empty{font-size:13px;line-height:1.55;color:var(--ink2)}
+
+/* ── narrow screens: the page stacks, nothing becomes an app ── */
+@media (max-width:860px){
+  .shell,.mast-inner{padding:0 16px}
+  .mast-inner{height:auto;flex-wrap:wrap;gap:10px;padding-top:10px;padding-bottom:10px}
+  .nav{order:3;flex-basis:100%}
+  .mast-actions{margin-left:auto}
+  .g2,.g2b{grid-template-columns:minmax(0,1fr)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .warn-grid{grid-template-columns:minmax(0,1fr)}
+  .dial{width:96px;height:96px}
+  .dial b{font-size:34px}
+  .page{padding:16px 0 40px}
+  .ward-map{height:420px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="masthead">
+    <div class="mast-inner">
+      <div class="wordmark"><div class="leaf"><span class="ms" style="font-size:19px">eco</span></div><b>Saans AQI</b></div>
+      <nav class="nav" id="nav"></nav>
+      <div class="mast-actions">
+        <button class="icon-btn" id="themeBtn" aria-label="Switch theme"><span class="ms" id="themeIcon">dark_mode</span></button>
+        <button class="avatar" id="userBtn">U</button>
+        <div class="menu" id="userMenu">
+          <div class="menu-name" id="menuName">&mdash;</div>
+          <div class="menu-email" id="menuEmail">&mdash;</div>
+          <button id="signOutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ TODAY ══ -->
+  <section class="page active" id="page-today"><div class="shell">
+    <div class="sos hidden" id="sosBanner">
+      <div class="ic" id="sosIc"><span class="ms" style="font-size:18px">warning</span></div>
+      <div><h3 id="sosTitle"></h3><p id="sosMsg"></p></div>
+    </div>
+
+    <div class="g2">
+      <div class="card aqi-card">
+        <div class="aqi-top" id="aqiTop"></div>
+        <div class="aqi-body">
+          <div class="aqi-head">
+            <div class="eyebrow" style="display:flex;align-items:center;gap:6px">
+              <span class="live-dot" id="liveDot"></span><span id="readingLabel">Delhi AQI</span>
+            </div>
+            <span class="pill" id="readingPill">&mdash;</span>
+          </div>
+          <div class="aqi-main">
+            <div class="dial" id="dial"><b class="num" id="dialNum">&mdash;</b><span>AQI</span></div>
+            <div style="min-width:0">
+              <div class="band-row"><span class="band-name" id="bandName">&mdash;</span><span class="cpcb" id="cpcbTag">CPCB</span></div>
+              <p class="advice" id="advice">&mdash;</p>
+              <p class="basis"><span class="ms" style="font-size:14px">schedule</span><span id="basis">&mdash;</span></p>
+            </div>
+          </div>
+          <div class="warn-grid hidden" id="warnings"></div>
+          <div class="aqi-foot"><div class="stations" id="stationRow"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="ti"><span class="ms" style="font-size:17px">bar_chart</span></span>AQI Scale Guide
+          <span class="eyebrow" style="margin-left:auto">CPCB India</span>
+        </div>
+        <div class="scale" id="scaleGrid"></div>
+        <p class="scale-note">Standardised under India's National Air Quality Index.</p>
+      </div>
+    </div>
+
+    <div class="card hidden" id="tomorrowCard" style="margin-top:16px">
+      <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">wb_twilight</span></span>Tomorrow<span class="eyebrow" style="margin-left:auto" id="tmrDate">&mdash;</span></div>
+      <div class="tmr">
+        <div class="tmr-dial" id="tmrDial"><b class="num" id="tmrNum">&mdash;</b><span>AQI</span></div>
+        <div style="min-width:0">
+          <div class="band-row"><span class="band-name" id="tmrBand">&mdash;</span><span class="pill" id="tmrRange">&mdash;</span></div>
+          <p class="advice" id="tmrWhy">&mdash;</p>
+          <p class="basis"><span class="ms" style="font-size:14px">insights</span><span id="tmrBasis">&mdash;</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2b">
+      <div class="card">
+        <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">calendar_month</span></span>The week ahead</div>
+        <div class="week-row" id="weekRow"></div>
+        <p class="scale-note hidden" id="weekNote"></p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">sms</span></span>SMS alerts</div>
+        <p class="alert-why" id="alertWhy">&mdash;</p>
+        <form class="alert-form" id="alertForm">
+          <div class="alert-row">
+            <input class="input" id="alertPhone" type="tel" inputmode="numeric" placeholder="Mobile number" autocomplete="tel">
+            <button class="btn" type="submit" id="alertBtn">Alert me</button>
+          </div>
+          <p class="alert-note">One SMS when the air turns dangerous &mdash; not a daily digest.
+            Your number is stored only as a one-way hash.</p>
+          <p class="msg" id="alertMsg"></p>
+        </form>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ══ WARD MAP ══ -->
+  <section class="page" id="page-map"><div class="shell">
+    <div class="page-head" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <h1>AQI by area</h1>
+      <p class="lead-sub" id="mapStatus">Loading the map&hellip;</p>
+    </div>
+    <div class="g2 map-grid">
+      <div class="card map-card">
+        <div class="ward-map" id="wardMap"></div>
+        <div class="map-legend" id="mapLegend"></div>
+      </div>
+      <div class="map-side">
+        <div class="card">
+          <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">location_on</span></span>Selected area</div>
+          <div id="wardDetail"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">format_list_numbered</span></span>Most polluted areas right now</div>
+          <div id="wardRank"></div>
+        </div>
+      </div>
+    </div>
+    <p class="prov" id="mapProv"></p>
+  </div></section>
+
+  <!-- ══ FORECAST ══ -->
+  <section class="page" id="page-forecast"><div class="shell">
+    <div class="page-head"><h1>Forecast</h1></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">online_prediction</span></span>Predict AQI</div>
+        <div class="seg" id="scopeSeg"></div>
+        <div class="seg" id="yearSeg" style="margin-top:8px"></div>
+        <div class="panel" id="fcPanel">
+          <div class="eyebrow" id="fcHeading">&mdash;</div>
+          <div class="fc-num num" id="fcNum">&mdash;</div>
+          <div class="fc-band" id="fcBand">&mdash;</div>
+          <div class="ci">
+            <div class="ci-track">
+              <div class="ci-span" id="ciSpan"></div>
+              <div class="ci-mid" id="ciMid"></div>
+            </div>
+            <div class="ci-labels"><span id="ciLo">&mdash;</span><span>likely range</span><span id="ciHi">&mdash;</span></div>
+          </div>
+        </div>
+        <div class="scrub-row" id="scrubRow"></div>
+        <div class="scrub-lbls" id="scrubLabels"></div>
+        <p class="hint" id="scrubHint">&mdash;</p>
+        <p class="note" id="fcNote">&mdash;</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">calendar_month</span></span><span id="yearGridTitle">Full Year Outlook</span></div>
+        <div class="year-grid" id="yearGrid"></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ══ ASK ══ -->
+  <section class="page" id="page-ask"><div class="shell"><div class="narrow">
+    <div class="page-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="ti-lg"><span class="ms">smart_toy</span></span><h1>AI Air Quality Assistant</h1>
+      </div>
+    </div>
+    <div class="card chat-bar">
+      <div class="lang-row"><span class="eyebrow" style="margin-right:4px">Language</span><span id="langSeg" style="display:contents"></span></div>
+      <div class="sug-row" id="sugRow"></div>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="composer">
+      <input id="chatInput" placeholder="Ask about Delhi's air quality&hellip;">
+      <button class="send" id="chatSend" aria-label="Send"><span class="ms" style="font-size:18px">send</span></button>
+    </div>
+  </div></div></section>
+
+  <!-- ══ PATTERNS ══ -->
+  <section class="page" id="page-patterns"><div class="shell">
+    <div class="page-head" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <h1 id="leadLine">&mdash;</h1>
+      <p class="lead-sub" id="leadSub">&mdash;</p>
+    </div>
+
+    <div class="stats">
+      <div class="card stat"><b id="stAvg" style="color:var(--emerald)">&mdash;</b><div class="l">Average AQI</div><div class="s" id="stAvgSub">&mdash;</div></div>
+      <div class="card stat"><b id="stWorst" style="color:var(--vpoor)">&mdash;</b><div class="l">Worst Month</div><div class="s" id="stWorstSub">&mdash;</div></div>
+      <div class="card stat"><b id="stBest" style="color:var(--good)">&mdash;</b><div class="l">Best Month</div><div class="s" id="stBestSub">&mdash;</div></div>
+      <div class="card stat"><b id="stMax" style="color:var(--poor)">&mdash;</b><div class="l">Highest Recorded</div><div class="s" id="stMaxSub">&mdash;</div></div>
+    </div>
+
+    <div class="g2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title">Monthly Average AQI</div>
+        <p class="card-sub">How AQI changes through the year (mean of all daily readings per month)</p>
+        <div class="bars" id="monthBars"></div>
+        <div class="axis" id="monthAxis"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Year-by-Year Trend</div>
+        <p class="card-sub" id="trendSub">&mdash;</p>
+        <svg id="trendChart" viewBox="0 0 342 122" style="width:100%;height:auto;display:block"></svg>
+        <div class="axis" id="trendAxis"></div>
+        <div class="legend">
+          <span><i class="lg-dot" style="background:var(--emerald)"></i><span id="actualLegend">Actual</span></span>
+          <span id="earlyLegend" class="hidden"><i class="lg-dot" style="background:var(--card);border:1.6px solid var(--emerald)"></i><span id="earlyLegendText"></span></span>
+          <span><i class="lg-dash"></i>Trend</span>
+          <span id="partialLegend"><i class="lg-tri">&#9651;</i><span id="trendFoot">&mdash;</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Daily AQI Viewer</div>
+      <p class="card-sub">See day-by-day AQI for any month</p>
+      <div class="viewer-row">
+        <div class="sel-wrap"><select class="select" id="ddYear"></select></div>
+        <div class="sel-wrap"><select class="select" id="ddMonth"></select></div>
+      </div>
+      <svg id="dailyChart" viewBox="0 0 900 160" style="width:100%;height:auto;display:block;margin-top:14px"></svg>
+      <div class="axis" id="dailyAxis"></div>
+      <p class="scale-note" id="dailyNote"></p>
+    </div>
+
+    <p class="prov" id="prov">&mdash;</p>
+  </div></section>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

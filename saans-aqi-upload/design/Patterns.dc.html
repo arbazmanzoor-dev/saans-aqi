@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+Devanagari:wght@400;600&amp;family=Noto+Sans+Gurmukhi:wght@400;600&amp;family=Noto+Naskh+Arabic:wght@400;600&amp;display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #059669; text-decoration: none; }
+    a:hover { color: #006948; }
+    .tap { cursor: pointer; border: 0; font-family: 'Inter', system-ui, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 1280px; min-height: 1100px; background: {{t.bg}}; color: {{t.ink}}; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column;"><div style="background: linear-gradient(90deg, {{t.hdrA}}, {{t.hdrB}}); box-shadow: 0 1px 2px rgba(15,23,42,0.08);"><div style="display: flex; align-items: center; gap: 22px; height: 56px; width: 996px; margin: 0 auto;"><div style="display: flex; align-items: center; gap: 10px; color: #FFFFFF; flex: none;"><div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.leaf }}"></path></svg></div><span style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Saans AQI</span></div><div style="display: flex; gap: 4px; flex-grow: 1;"><sc-for list="{{ nav }}" as="n" hint-placeholder-count="5"><span style="padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; background: {{ n.bg }}; color: {{ n.color }};">{{ n.label }}</span></sc-for></div><div style="display: flex; align-items: center; gap: 6px; flex: none;"><button class="tap" onClick="{{ toggleDark }}" style="width: 36px; height: 36px; background: none; border-radius: 999px; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg></button><div style="width: 32px; height: 32px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">A</div></div></div></div><div style="width: 996px; margin: 0 auto; padding: 24px 0 56px;"><div style="margin-bottom: 16px;"><div style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; color: {{t.ink}};">November is <span style="color: {{ worstColor }};">3.3 times</span> August</div><p style="margin: 4px 0 0; font-size: 13.5px; line-height: 1.55; color: {{t.muted}}; max-width: 70ch;">Delhi’s year has one shape, and it repeats. The monsoon washes the air to its cleanest; the winter inversion traps it at its worst.</p></div><div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;"><sc-for list="{{ stats }}" as="s" hint-placeholder-count="4"><div style="background: {{t.card}}; border: 1px solid {{t.line}}; border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); text-align: center; padding: 18px 12px;"><span style="display: block; font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: {{ s.color }};">{{ s.v }}</span><div style="font-size: 13px; font-weight: 700; margin-top: 6px; color: {{t.ink}};">{{ s.l }}</div><div style="font-size: 11.5px; margin-top: 2px; color: {{t.muted}};">{{ s.s }}</div></div></sc-for></div><div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: start; margin-top: 16px;"><div style="background: {{t.card}}; border: 1px solid {{t.line}}; border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); padding: 16px;"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{t.ink}}; margin-bottom: 12px;"><span>Monthly Average AQI</span></div><p style="font-size: 12px; color: {{t.muted}}; margin: -6px 0 12px; line-height: 1.5;">How AQI changes through the year (mean of all daily readings per month)</p><div style="position: relative; height: 190px; display: flex; align-items: flex-end; gap: 6px; padding: 0 4px;"><sc-for list="{{ grid }}" as="g" hint-placeholder-count="5"><div style="position: absolute; left: 0; right: 0; height: 1px; bottom: {{ g.bottom }}; background: {{t.lineSoft}};"></div></sc-for><sc-for list="{{ bars }}" as="m" hint-placeholder-count="12"><div style="flex: 1; display: flex; justify-content: center; align-items: flex-end; height: 100%; position: relative;"><span style="display: block; width: 100%; max-width: 22px; height: {{ m.h }}; border-radius: 4px 4px 0 0; border: 2px solid {{ m.color }}; border-bottom: 0; background: {{ m.fill }};"></span></div></sc-for></div><div style="display: flex; justify-content: space-between; margin-top: 6px;"><sc-for list="{{ bars }}" as="m" hint-placeholder-count="12"><span style="flex: 1; text-align: center; font-size: 10.5px; color: {{ m.axisColor }}; font-weight: {{ m.axisWeight }};">{{ m.label }}</span></sc-for></div></div><div style="background: {{t.card}}; border: 1px solid {{t.line}}; border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); padding: 16px;"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{t.ink}}; margin-bottom: 12px;"><span>Year-by-Year Trend</span></div><p style="font-size: 12px; color: {{t.muted}}; margin: -6px 0 12px; line-height: 1.5;">Level trend −0.1 AQI a year (Theil–Sen, 2019–2024), damped for years ahead.</p><svg width="100%" viewBox="0 0 342 122" style="display: block;"><line x1="0" y1="100" x2="342" y2="100" stroke="{{t.line}}" stroke-width="1"></line><path d="{{ trend.actual }}" fill="none" stroke="{{t.emerald}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="{{ trend.projected }}" fill="none" stroke="{{ amber }}" stroke-width="1.8" stroke-dasharray="4 4"></path><sc-for list="{{ trend.dots }}" as="d" hint-placeholder-count="10"><circle cx="{{ d.x }}" cy="{{ d.y }}" r="{{ d.r }}" fill="{{ d.fill }}" stroke="{{ d.stroke }}" stroke-width="1.6"></circle></sc-for><path d="{{ trend.partial }}" fill="none" stroke="{{t.muted}}" stroke-width="1.5"></path></svg><div style="display: flex; justify-content: space-between; margin-top: 6px;"><sc-for list="{{ trend.labels }}" as="y" hint-placeholder-count="8"><span style="flex: 1; text-align: center; font-size: 10.5px; color: {{t.muted}};">{{ y.label }}</span></sc-for></div><div style="display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid {{t.lineSoft}}; font-size: 11px; font-weight: 500; color: {{t.ink2}};"><div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 999px; display: inline-block; background: {{t.emerald}};"></span><span>2020–2024 · CPCB</span></div><div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 999px; display: inline-block; background: {{t.card}}; border: 1.6px solid {{t.emerald}};"></span><span>2015–2019 · other source</span></div><div style="display: flex; align-items: center; gap: 6px;"><span style="width: 14px; border-bottom: 2px dashed {{ amber }}; display: inline-block;"></span><span>Trend</span></div><div style="display: flex; align-items: center; gap: 6px; color: {{t.ink2}};"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.triangle }}"></path></svg><span>2025 (Jan–Mar only)</span></div></div></div></div><div style="background: {{t.card}}; border: 1px solid {{t.line}}; border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); padding: 16px; margin-top: 16px;"><div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{t.ink}}; margin-bottom: 12px;"><span>Daily AQI Viewer</span></div><p style="font-size: 12px; color: {{t.muted}}; margin: -6px 0 12px; line-height: 1.5;">See day-by-day AQI for any month</p><div style="display: flex; gap: 8px;"><div style="flex: 1; background: {{t.field}}; border: 1px solid {{t.line}}; border-radius: 12px; padding: 9px 12px; font-size: 12.5px; font-weight: 600; color: {{t.ink}};">2024</div><div style="flex: 1; background: {{t.field}}; border: 1px solid {{t.line}}; border-radius: 12px; padding: 9px 12px; font-size: 12.5px; font-weight: 600; color: {{t.ink}};">November</div></div><svg width="100%" viewBox="0 0 900 160" style="display: block; margin-top: 14px;"><path d="{{ daily.area }}" fill="{{ daily.fill }}"></path><path d="{{ daily.line }}" fill="none" stroke="{{ daily.color }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><sc-for list="{{ daily.dots }}" as="p" hint-placeholder-count="30"><circle cx="{{ p.x }}" cy="{{ p.y }}" r="2.6" fill="{{ p.color }}"></circle></sc-for></svg><div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 10.5px; color: {{t.muted}};"><span>1</span><span>15</span><span>30</span></div></div><p style="margin: 20px 0 0; font-size: 11.5px; line-height: 1.5; color: {{t.faint}};">3,732 daily readings. 2015–2019: the “Air Quality Data in India” city_day table, compiled from CPCB station data — it calculates AQI itself and reads about 10 higher than CPCB; 48 days above 500 are shown as 500. 2020–2025: CPCB daily city workbooks. Forecasts use the CPCB years.</p></div></div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+
+  isDark() {
+    return (this.state && this.state.dark !== null && this.state.dark !== undefined)
+      ? this.state.dark : (this.props.dark ?? false);
+  }
+
+  /* index.html :root and [data-theme="dark"] tokens. */
+  theme(dark) {
+    return dark
+      ? { bg: '#0F172A', card: '#1E293B', track: '#0F172A', field: '#0F172A', ink: '#F1F5F9', ink2: '#CBD5E1',
+          muted: '#94A3B8', faint: '#64748B', outline: '#94A3B8', line: '#334155', lineSoft: '#273449',
+          lineStrong: '#475569', primary: '#10B981', primaryC: '#059669', emerald: '#34D399', pfixed: '#A7F3D0',
+          onPfixed: '#064E3B', pfixedSoft: 'rgba(16,185,129,0.14)', hdrA: '#064E3B', hdrB: '#065F46',
+          skyBg: 'rgba(56,189,248,0.15)', skyInk: '#7DD3FC', dialInk: '#0F172A', tileInk: '#0F172A' }
+      : { bg: '#F8FAFC', card: '#FFFFFF', track: '#F2F3FF', field: '#F1F5F9', ink: '#0F172A', ink2: '#334155',
+          muted: '#64748B', faint: '#94A3B8', outline: '#6D7A72', line: '#E2E8F0', lineSoft: '#F1F5F9',
+          lineStrong: '#CBD5E1', primary: '#006948', primaryC: '#00855D', emerald: '#059669', pfixed: '#85F8C4',
+          onPfixed: '#005137', pfixedSoft: '#ECFDF5', hdrA: '#006948', hdrB: '#00855D',
+          skyBg: '#E0F2FE', skyInk: '#0369A1', dialInk: '#FFFFFF', tileInk: '#FFFFFF' };
+  }
+
+  /* CPCB bands with their -bg / -line / -ink tints, light then dark. */
+  bandList(dark) {
+    const rows = [
+      ['Good',         '0–50',    50,   '#16A34A', '#F0FDF4', '#DCFCE7', '#166534', '#4ADE80', 'rgba(74,222,128,0.10)',  'rgba(74,222,128,0.28)',  '#BBF7D0'],
+      ['Satisfactory', '51–100',  100,  '#65A30D', '#F7FEE7', '#ECFCCB', '#3F6212', '#A3E635', 'rgba(163,230,53,0.10)',  'rgba(163,230,53,0.28)',  '#D9F99D'],
+      ['Moderate',     '101–200', 200,  '#D97706', '#FFFBEB', '#FEF3C7', '#92400E', '#FBBF24', 'rgba(251,191,36,0.10)',  'rgba(251,191,36,0.28)',  '#FDE68A'],
+      ['Poor',         '201–300', 300,  '#EA580C', '#FFF7ED', '#FFEDD5', '#9A3412', '#FB923C', 'rgba(251,146,60,0.10)',  'rgba(251,146,60,0.28)',  '#FED7AA'],
+      ['Very Poor',    '301–400', 400,  '#DC2626', '#FEF2F2', '#FEE2E2', '#991B1B', '#F87171', 'rgba(248,113,113,0.10)', 'rgba(248,113,113,0.28)', '#FECACA'],
+      ['Severe',       '401+',    9999, '#701A75', '#FDF4FF', '#FAE8FF', '#701A75', '#E879F9', 'rgba(232,121,249,0.10)', 'rgba(232,121,249,0.28)', '#F5D0FE'],
+    ];
+    return rows.map((r) => ({ label: r[0], range: r[1], max: r[2],
+      color: dark ? r[7] : r[3], bg: dark ? r[8] : r[4], line: dark ? r[9] : r[5], ink: dark ? r[10] : r[6] }));
+  }
+
+  band(v, dark) {
+    const list = this.bandList(dark);
+    return list.find((b) => v <= b.max) || list[list.length - 1];
+  }
+
+  alpha(hex, a) {
+    const h = String(hex).replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return hex;
+    const n = parseInt(h, 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  /* color-mix(in srgb, c 78%, #000) */
+  darken(hex) {
+    const h = String(hex).replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return hex;
+    const n = parseInt(h, 16), f = (c) => Math.round(c * 0.78);
+    return 'rgb(' + f((n >> 16) & 255) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')';
+  }
+
+  /* Outline strokes standing in for the app's Material Symbols (FILL 0), so
+     PNG/PDF export never shows ligature words instead of icons. */
+  icons() {
+    return {
+      leaf: 'M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12',
+      moon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z',
+      sun: 'M12 4v2 M12 18v2 M4 12H2 M22 12h-2 M6.3 6.3 4.9 4.9 M19.1 4.9l-1.4 1.4 M6.3 17.7l-1.4 1.4 M17.7 17.7l1.4 1.4 M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z',
+      warning: 'M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01',
+      clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2',
+      satellite: 'M13 7 9 3 5 7l4 4 M17 11l4 4-4 4-4-4 M8 12l4 4 6-6-4-4-6 6z M16 8l3-3 M9 21a6 6 0 0 0-6-6',
+      bars: 'M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3',
+      calendar: 'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+      sms: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z M8 9h8 M8 13h5',
+      predict: 'M12 3v3 M12 18v3 M3 12h3 M18 12h3 M5.6 5.6l2.1 2.1 M16.3 16.3l2.1 2.1 M5.6 18.4l2.1-2.1 M16.3 7.7l2.1-2.1 M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+      robot: 'M12 8V4H8 M4 8h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z M2 14h2 M20 14h2 M15 13v2 M9 13v2',
+      send: 'M22 2 11 13 M22 2l-7 20-4-9-9-4 20-7z',
+      person: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+      mask: 'M3 11c0-2 1-3 3-3.5 2-.5 4-1 6-1s4 .5 6 1c2 .5 3 1.5 3 3.5 0 4-4 8-9 8s-9-4-9-8z M8 12h8',
+      window: 'M4 4h16v16H4z M12 4v16 M4 12h16',
+      people: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1 M12.5 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0z M21 20v-1a4 4 0 0 0-3-3.9 M16.5 4.1a4 4 0 0 1 0 5.8',
+      purify: 'M3 8h12a3 3 0 1 0-3-3 M3 16h9a3 3 0 1 1-3 3 M3 12h16',
+      medical: 'M12 8v8 M8 12h8 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+      ban: 'M4.9 4.9l14.2 14.2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+      triangle: 'M12 5 20 19H4z',
+    };
+  }
+
+  adviceFor(v) {
+    if (v <= 50)  return 'Clear air today. Windows open, and take the long way round.';
+    if (v <= 100) return 'A good day to be outside. Morning air is at its cleanest.';
+    if (v <= 200) return 'Fine before nine. Keep long walks short after that, especially for children and anyone with asthma.';
+    if (v <= 300) return 'Shorten the school run and keep windows shut by evening. A mask is worth it outdoors.';
+    if (v <= 400) return 'Stay in today. The air is serious — a respirator if you must go out, and run a purifier indoors.';
+    return 'Do not go out. This is an emergency level: seek help for any breathing trouble, chest pain or dizziness.';
+  }
+
+  advisory(v) {
+    if (v <= 100) return null;
+    if (v <= 200) return { title: 'Moderate Air Quality', msg: 'Sensitive groups (children, elderly, asthma patients) should limit outdoor time. Others can continue normal activities.' };
+    if (v <= 300) return { title: 'Poor Air Quality', msg: 'Everyone may feel discomfort. Wear an N95 mask outdoors and keep windows closed.' };
+    if (v <= 400) return { title: 'Very Poor Air — Stay Indoors', msg: 'Serious risk for everyone. Keep windows and doors closed; children, elderly and pregnant women should stay indoors.' };
+    return { title: 'Severe — Health Emergency', msg: 'Avoid all outdoor activity. Seek medical help for breathing trouble, chest pain or dizziness.' };
+  }
+
+  /* WARN_FROM = 200, as in app.js. */
+  warningsFor(v, b) {
+    if (v <= 200) return [];
+    const ic = this.icons();
+    const w = [
+      { icon: ic.mask,   text: 'Wear an N95 mask outdoors — a cloth mask will not filter this.' },
+      { icon: ic.window, text: 'Keep windows and doors closed, especially in the evening.' },
+      { icon: ic.people, text: 'Children, elderly and pregnant women should stay indoors.' },
+    ];
+    if (v > 300) w.push(
+      { icon: ic.purify,  text: 'Run an air purifier, or sit in one room with the doors shut.' },
+      { icon: ic.medical, text: 'Seek medical help for breathing trouble, chest pain or dizziness.' });
+    if (v > 400) w.push({ icon: ic.ban, text: 'No outdoor activity at all. This is a health emergency.' });
+    return w.map((x) => ({ ...x, color: b.color, line: b.line, bg: b.bg }));
+  }
+
+  /* Everything the reading card and advisory strip need for one value. */
+  readingFor(value, dark, t, meta) {
+    const b = this.band(value, dark);
+    const adv = this.advisory(value);
+    const warnings = this.warningsFor(value, b);
+    return {
+      b, value,
+      label: meta.label, dot: meta.dot, dateShort: meta.dateShort, basis: meta.basis,
+      dialBg: 'linear-gradient(135deg, ' + b.color + ', ' + this.darken(b.color) + ')',
+      dialShadow: '0 0 0 4px ' + b.line + ', 0 6px 16px ' + this.alpha(b.color, 0.25),
+      advice: this.adviceFor(value),
+      hasAdv: !!adv, adv: adv || { title: '', msg: '' },
+      hasWarnings: warnings.length > 0, warnings,
+      warnHead: 'What to do at ' + b.label.toLowerCase() + ' levels',
+    };
+  }
+
+  headVals(t, dark, active) {
+    const ic = this.icons();
+    return {
+      ic,
+      themeIcon: dark ? ic.sun : ic.moon,
+      nav: ['Today', 'Ward Map', 'Forecast', 'AI Chat', 'Analytics'].map((label) => ({
+        label,
+        bg: label === active ? t.pfixed : 'transparent',
+        color: label === active ? t.onPfixed : 'rgba(255,255,255,0.82)',
+      })),
+      toggleDark: () => this.setState({ dark: !dark }),
+    };
+  }
+
+  /* .seg button / .seg button.on */
+  segOn(t, on) {
+    return { bg: on ? t.card : 'transparent', color: on ? t.primary : t.outline,
+             weight: on ? '700' : '500', shadow: on ? '0 1px 2px rgba(15,23,42,0.1)' : 'none' };
+  }
+
+  /* app.js smooth(): Catmull-Rom as cubic beziers. */
+  smooth(pts) {
+    let d = 'M ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += ' C ' + (p1.x + (p2.x - p0.x) / 6).toFixed(1) + ' ' + (p1.y + (p2.y - p0.y) / 6).toFixed(1) +
+           ', ' + (p2.x - (p3.x - p1.x) / 6).toFixed(1) + ' ' + (p2.y - (p3.y - p1.y) / 6).toFixed(1) +
+           ', ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+
+  constructor(props) { super(props); this.state = { dark: null }; }
+
+  renderVals() {
+    const dark = this.isDark();
+    const t = this.theme(dark);
+    /* /api/stats: monthly means of 3,732 daily readings, 2015–2025. */
+    const means = [336.9, 268.8, 207.7, 230.8, 229.9, 183.5, 114.9, 111.9, 130.2, 265.5, 371.7, 347.7];
+    const short = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const worst = 10, best = 7;
+
+    /* Year on year: complete years, the damped Theil–Sen level, 2025 apart. */
+    /* 2015-2019 come from the other source, so their dots are drawn hollow. */
+    const complete = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
+    const vals = [297, 297.6, 254.8, 248.4, 230.7, 185.3, 208.6, 209.2, 203.6, 209.1];
+    const earlyTo = 2019;
+    const proj = { 2024: 209, 2025: 208.8, 2026: 208.7, 2027: 208.7, 2028: 208.6, 2029: 208.5, 2030: 208.5 };
+    const partialY = 2025, partialV = 230.5;
+    const allV = vals.concat(Object.values(proj), [partialV]);
+    const lo = Math.min.apply(null, allV) - 8, hi = Math.max.apply(null, allV) + 8;
+    const TW = 342, TH = 100, firstY = 2015, lastY = 2030;
+    const tx = (y) => ((y - firstY) / (lastY - firstY)) * (TW - 20) + 10;
+    const ty = (v) => TH - ((v - lo) / (hi - lo)) * (TH - 20);
+    const px = tx(partialY), py = ty(partialV);
+
+    /* November 2024, day by day. */
+    const nov = [339, 318, 381, 380, 372, 351, 377, 379, 350, 334, 352, 334, 418, 424, 396, 417, 441, 494,
+                 460, 419, 371, 393, 412, 318, 349, 343, 303, 325, 331, 346];
+    const W = 900, H = 144, maxV = Math.max.apply(null, nov) * 1.1;
+    const dpts = nov.map((v, i) => ({ x: (i / (nov.length - 1)) * (W - 16) + 8, y: H - (v / maxV) * (H - 16) }));
+    const dline = this.smooth(dpts);
+    const dcolor = this.band(nov.reduce((s, v) => s + v, 0) / nov.length, dark).color;
+    const bands = this.bandList(dark);
+
+    return {
+      t, ...this.headVals(t, dark, 'Analytics'),
+      worstColor: this.band(means[worst], dark).color,
+      stats: [
+        { v: '234', l: 'Average AQI',      s: '2015–2025',                  color: t.emerald },
+        { v: '372', l: 'Worst Month',      s: 'November avg',               color: bands[4].color },
+        { v: '112', l: 'Best Month',       s: 'August avg',                 color: bands[0].color },
+        { v: '500', l: 'Highest Recorded', s: 'top of the scale · 48 days', color: bands[3].color },
+      ],
+      grid: [0, 25, 50, 75, 100].map((p) => ({ bottom: p + '%' })),
+      bars: means.map((v, i) => {
+        const b = this.band(v, dark);
+        const mark = i === worst || i === best;
+        return { h: Math.min(100, (v / 400) * 100).toFixed(1) + '%', color: b.color, fill: b.line,
+                 label: short[i], axisColor: mark ? t.ink : t.muted, axisWeight: mark ? '700' : '400' };
+      }),
+      trend: {
+        actual: this.smooth(complete.map((y, i) => ({ x: tx(y), y: ty(vals[i]) }))),
+        projected: 'M ' + tx(2024).toFixed(1) + ' ' + ty(proj[2024]).toFixed(1) +
+                   ' L ' + tx(2030).toFixed(1) + ' ' + ty(proj[2030]).toFixed(1),
+        partial: 'M ' + (px - 5).toFixed(1) + ' ' + (py + 4).toFixed(1) + ' L ' + px.toFixed(1) + ' ' +
+                 (py - 5).toFixed(1) + ' L ' + (px + 5).toFixed(1) + ' ' + (py + 4).toFixed(1) + ' Z',
+        dots: complete.map((y, i) => ({ x: tx(y).toFixed(1), y: ty(vals[i]).toFixed(1),
+          r: y <= earlyTo ? 3 : 3.2, fill: y <= earlyTo ? t.card : t.emerald,
+          stroke: y <= earlyTo ? t.emerald : 'none' })),
+        labels: [2015, 2017, 2019, 2021, 2023, 2025, 2027, 2029].map((y) => ({ label: String(y) })),
+      },
+      amber: bands[2].color,
+      daily: {
+        area: dline + ' L ' + dpts[dpts.length - 1].x.toFixed(1) + ' ' + H + ' L ' + dpts[0].x.toFixed(1) + ' ' + H + ' Z',
+        line: dline, fill: this.alpha(dcolor, 0.12), color: dcolor,
+        dots: dpts.map((p, i) => ({ x: p.x.toFixed(1), y: p.y.toFixed(1), color: this.band(nov[i], dark).color })),
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

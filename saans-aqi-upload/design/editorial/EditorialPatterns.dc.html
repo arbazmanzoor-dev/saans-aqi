@@ -1,0 +1,247 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Gurmukhi:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #1F5241; text-decoration: none; } a:hover { color: #143A2E; }
+    .num { font-family: 'Instrument Serif', Georgia, serif; font-variant-numeric: tabular-nums; }
+    .body { font-family: 'Karla', 'Helvetica Neue', sans-serif; }
+    .eyebrow { font-family: 'Karla', sans-serif; font-size: 11px; font-weight: 600;
+               letter-spacing: 0.14em; text-transform: uppercase; }
+    .tap { cursor: pointer; border: 0; background: none; font-family: 'Karla', sans-serif; }
+  </style>
+</helmet>
+
+<div class="body" style="width: 1280px; height: 900px; background: {{t.bg}}; color: {{t.ink}};
+            display: flex; flex-direction: column; overflow: hidden;">
+  <!-- site header -->
+  <div style="border-bottom: 1px solid {{t.rule}}; background: {{t.bg}};">
+    <div style="display: flex; align-items: center; gap: 28px; height: 68px;
+                width: 996px; margin: 0 auto;">
+      <div style="display: flex; align-items: baseline; gap: 7px; flex: none;">
+        <span class="num" style="font-size: 25px;">Saans</span>
+        <span class="eyebrow" style="color: {{t.muted}};">AQI</span>
+      </div>
+      <div style="display: flex; gap: 2px; flex-grow: 1;">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <span style="padding: 8px 14px; border-radius: 999px; font-size: 13.5px;
+                       font-weight: {{ n.weight }}; color: {{ n.color }};
+                       background: {{ n.bg }};">{{ n.label }}</span>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; flex: none;">
+        <button onClick="{{ toggleDark }}" style="width: 40px; height: 40px; border: 0;
+                background: none; cursor: pointer; color: {{t.muted}}; border-radius: 999px;
+                display: flex; align-items: center; justify-content: center;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="{{t.themeIcon}}"></path>
+          </svg>
+        </button>
+        <div style="width: 32px; height: 32px; border-radius: 999px; border: 1px solid {{t.rule}};
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 12px; font-weight: 600; color: {{t.muted}};">A</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="width: 996px; margin: 0 auto; padding-top: 44px;">
+
+    <div style="max-width: 760px;">
+      <p class="num" style="margin: 0; font-size: 44px; line-height: 1.2; text-wrap: pretty;">November
+        is <span style="color: {{ accent }};">3.9 times</span> August.</p>
+      <p style="margin: 14px 0 0; font-size: 14px; line-height: 1.55; color: {{t.muted}};">Delhi’s year
+        has one shape, and it repeats. The monsoon washes the air to its cleanest; the winter
+        inversion traps it at its worst.</p>
+    </div>
+
+    <!-- the seasonal wave, full width -->
+    <div style="margin-top: 36px;">
+      <svg width="996" height="220" viewBox="0 0 996 220" style="display: block;">
+        <path d="{{ wave.area }}" fill="{{ accent }}" opacity="0.13"></path>
+        <path d="{{ wave.line }}" fill="none" stroke="{{ accent }}" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"></path>
+        <sc-for list="{{ wave.peaks }}" as="p" hint-placeholder-count="2">
+          <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4.5" fill="{{ p.color }}"></circle>
+          <text x="{{ p.x }}" y="{{ p.ty }}" font-family="Instrument Serif, Georgia, serif"
+                font-size="21" fill="{{ p.color }}" text-anchor="middle">{{ p.v }}</text>
+        </sc-for>
+      </svg>
+      <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+        <sc-for list="{{ monthLabels }}" as="m" hint-placeholder-count="12">
+          <span style="font-size: 11px; color: {{ m.color }};">{{ m.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="height: 1px; background: {{t.rule}}; margin-top: 44px;"></div>
+
+    <!-- two supporting charts, side by side -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px;
+                margin-top: 36px;">
+      <div>
+        <div class="eyebrow" style="color: {{t.muted}};">Year on year</div>
+        <p style="margin: 10px 0 16px; font-size: 13px; line-height: 1.55; color: {{t.muted}};">Flat
+          since 2021. The 2020 dip was the lockdown, not a trend, so it is left out of the fit.</p>
+        <svg width="474" height="150" viewBox="0 0 474 150" style="display: block;">
+          <line x1="0" y1="{{ trend.baseY }}" x2="474" y2="{{ trend.baseY }}"
+                stroke="{{t.rule}}" stroke-width="1"></line>
+          <path d="{{ trend.actual }}" fill="none" stroke="{{ accent }}" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="{{ trend.projected }}" fill="none" stroke="{{t.muted}}" stroke-width="1.5"
+                stroke-dasharray="3 4"></path>
+          <sc-for list="{{ trend.dots }}" as="d" hint-placeholder-count="5">
+            <circle cx="{{ d.x }}" cy="{{ d.y }}" r="3.5" fill="{{ accent }}"></circle>
+          </sc-for>
+          <path d="{{ trend.partial }}" fill="none" stroke="{{t.muted}}" stroke-width="1.5"></path>
+        </svg>
+        <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+          <sc-for list="{{ trend.labels }}" as="y" hint-placeholder-count="6">
+            <span style="font-size: 11px; color: {{t.faint}};">{{ y.label }}</span>
+          </sc-for>
+        </div>
+        <p style="margin: 14px 0 0; font-size: 12px; color: {{t.faint}};">△ 2025 is January to March
+          only, so it sits apart from the line.</p>
+      </div>
+
+      <div>
+        <div class="eyebrow" style="color: {{t.muted}};">Day by day</div>
+        <div style="display: flex; gap: 8px; margin-top: 14px;">
+          <div style="flex: 1; border: 1px solid {{t.rule}}; border-radius: 999px; padding: 10px 16px;
+                      font-size: 12.5px;">2024</div>
+          <div style="flex: 1; border: 1px solid {{t.rule}}; border-radius: 999px; padding: 10px 16px;
+                      font-size: 12.5px;">November</div>
+        </div>
+        <svg width="474" height="150" viewBox="0 0 474 150" style="display: block; margin-top: 16px;">
+          <path d="{{ daily.area }}" fill="{{ dailyColor }}" opacity="0.11"></path>
+          <path d="{{ daily.line }}" fill="none" stroke="{{ dailyColor }}" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+          <span style="font-size: 11px; color: {{t.faint}};">1</span>
+          <span style="font-size: 11px; color: {{t.faint}};">15</span>
+          <span style="font-size: 11px; color: {{t.faint}};">30</span>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin: 44px 0 0; font-size: 12px; color: {{t.faint}};">1,916 daily readings · 2020–2025</p>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false,"section":"Theme"}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { dark: null }; }
+
+  bandFor(v, dark) {
+    const bands = [
+      { max: 50,   label: 'Good',         light: '#2E7D4F', dark: '#4FA873' },
+      { max: 100,  label: 'Satisfactory', light: '#6B9A2E', dark: '#93BF47' },
+      { max: 200,  label: 'Moderate',     light: '#D4881A', dark: '#E5A63F' },
+      { max: 300,  label: 'Poor',         light: '#DB5F22', dark: '#EA7B42' },
+      { max: 400,  label: 'Very Poor',    light: '#C32A22', dark: '#DE5049' },
+      { max: 9999, label: 'Severe',       light: '#7B1D57', dark: '#B85088' },
+    ];
+    const b = bands.find((x) => v <= x.max);
+    return { label: b.label, color: dark ? b.dark : b.light };
+  }
+
+  theme(dark) {
+    return dark
+      ? { bg: '#14120F', card: '#1D1A16', ink: '#F2EDE4', muted: '#9A9186',
+          faint: '#5D564D', rule: '#2E2A24', sel: 'rgba(242,237,228,0.06)', accent: '#7FB39E',
+          themeIcon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z' }
+      : { bg: '#FAF7F1', card: '#FFFDF9', ink: '#1B1815', muted: '#6E675C',
+          faint: '#ADA496', rule: '#E7E0D4', sel: 'rgba(27,24,21,0.045)', accent: '#1F5241',
+          themeIcon: 'M12 4v2m0 12v2M4 12H2m20 0h-2M6.3 6.3 4.9 4.9m14.2 1.4 1.4-1.4M6.3 17.7l-1.4 1.4m14.2-1.4 1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z' };
+  }
+
+  navFor(t, active) {
+    return ['Today','Forecast','Ask','Patterns'].map((label) => ({
+      label,
+      color: label === active ? t.ink : t.muted,
+      weight: label === active ? '600' : '500',
+      bg: label === active ? t.sel : 'transparent',
+    }));
+  }
+
+
+  smooth(pts) {
+    let d = 'M ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+      d += ' C ' + (p1.x + (p2.x-p0.x)/6).toFixed(1) + ' ' + (p1.y + (p2.y-p0.y)/6).toFixed(1) +
+           ', ' + (p2.x - (p3.x-p1.x)/6).toFixed(1) + ' ' + (p2.y - (p3.y-p1.y)/6).toFixed(1) +
+           ', ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+
+  renderVals() {
+    const dark = this.state.dark === null ? (this.props.dark ?? false) : this.state.dark;
+    const t = this.theme(dark);
+    const accent = this.bandFor(354, dark).color;
+    const clean = this.bandFor(91, dark).color;
+
+    /* Monthly means from the app's 1,916 cleaned daily readings. */
+    const vals = [310, 238, 181, 186, 179, 154, 92, 91, 103, 220, 354, 326];
+    const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const W = 996, H = 200, maxV = 380;
+    const pts = vals.map((v, i) => ({ x: (i/11)*(W-40)+20, y: H-(v/maxV)*(H-34) }));
+    const line = this.smooth(pts);
+
+    /* Annual means; 2025 is January to March only. */
+    const years = [185, 209, 209, 204, 209];
+    const TW = 474, TH = 128, lo = 175, hi = 240;
+    const ty = (v) => TH - ((v-lo)/(hi-lo))*(TH-24);
+    const tx = (i) => (i/10)*(TW-24)+12;
+    const px = tx(5), py = ty(230);
+
+    /* November 2024, day by day. */
+    const nov = [339,318,381,380,372,351,377,379,340,301,288,296,318,341,366,381,392,371,
+                 344,320,297,286,311,348,377,395,388,362,330,318];
+    const DW = 474, DH = 128, dMax = 420;
+    const dPts = nov.map((v, i) => ({ x: (i/(nov.length-1))*(DW-16)+8, y: DH-(v/dMax)*(DH-16) }));
+    const dLine = this.smooth(dPts);
+
+    return {
+      t, accent,
+      dailyColor: this.bandFor(348, dark).color,
+      wave: {
+        line,
+        area: line + ' L ' + pts[11].x.toFixed(1) + ' ' + H + ' L ' + pts[0].x.toFixed(1) + ' ' + H + ' Z',
+        peaks: [{ i: 10, v: 354, color: accent, dy: -18 }, { i: 7, v: 91, color: clean, dy: 30 }]
+          .map((p) => ({ v: p.v, color: p.color, x: pts[p.i].x.toFixed(1),
+                         y: pts[p.i].y.toFixed(1), ty: (pts[p.i].y + p.dy).toFixed(1) })),
+      },
+      monthLabels: names.map((label, i) => ({
+        label, color: i === 10 || i === 7 ? t.ink : t.faint })),
+      trend: {
+        baseY: TH.toFixed(1),
+        actual: this.smooth(years.map((v, i) => ({ x: tx(i), y: ty(v) }))),
+        projected: 'M ' + tx(4).toFixed(1) + ' ' + ty(209).toFixed(1) + ' L ' +
+                   tx(10).toFixed(1) + ' ' + ty(208.5).toFixed(1),
+        partial: 'M ' + (px-6).toFixed(1) + ' ' + (py+5).toFixed(1) + ' L ' + px.toFixed(1) +
+                 ' ' + (py-6).toFixed(1) + ' L ' + (px+6).toFixed(1) + ' ' + (py+5).toFixed(1) + ' Z',
+        dots: years.map((v, i) => ({ x: tx(i).toFixed(1), y: ty(v).toFixed(1) })),
+        labels: ['2020','2022','2024','2026','2028','2030'].map((label) => ({ label })),
+      },
+      daily: { line: dLine,
+        area: dLine + ' L ' + dPts[dPts.length-1].x.toFixed(1) + ' ' + DH + ' L ' +
+              dPts[0].x.toFixed(1) + ' ' + DH + ' Z' },
+      nav: this.navFor(t, 'Patterns'),
+      toggleDark: () => this.setState({ dark: !dark }),
+    };
+  }
+}
+</script>
+</body>
+</html>

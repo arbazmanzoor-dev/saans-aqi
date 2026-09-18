@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Saans AQI · Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* The Stitch sign-in: lavender-white ground, emerald gradient mark,
+   white rounded card, filled inputs. */
+:root{
+  --bg:#FAF8FF;--card:#FFFFFF;--ink:#1E293B;--muted:#64748B;--faint:#94A3B8;
+  --line:#F1F5F9;--rule:#E2E8F0;--field:#F1F5F9;--em:#059669;--em-d:#047857;
+  --error:#DC2626;--glow:rgba(5,150,105,0.08);
+}
+[data-theme="dark"]{
+  --bg:#0F172A;--card:#1E293B;--ink:#F1F5F9;--muted:#94A3B8;--faint:#64748B;
+  --line:#334155;--rule:#334155;--field:#0F172A;--em:#10B981;--em-d:#059669;
+  --error:#F87171;--glow:rgba(16,185,129,0.10);
+}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;-webkit-font-smoothing:antialiased;position:relative;overflow-x:hidden;
+}
+body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,var(--glow) 0%,transparent 70%)}
+body::before{top:-140px;right:-120px;width:440px;height:440px}
+body::after{bottom:-160px;left:-140px;width:400px;height:400px}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;
+  letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;
+  -webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.wrap{width:100%;max-width:400px;position:relative;z-index:1}
+.brand{text-align:center;margin-bottom:24px}
+.mark{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--em),var(--em-d));
+  color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+  box-shadow:0 10px 24px rgba(5,150,105,0.25)}
+.brand h1{font-size:26px;font-weight:800;letter-spacing:-0.02em}
+.brand h1 span{color:var(--em)}
+.brand p{margin-top:6px;font-size:13px;color:var(--muted);font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;
+  box-shadow:0 20px 40px -12px rgba(148,163,184,0.35)}
+.tabs{display:flex;gap:4px;background:var(--field);padding:4px;border-radius:12px;margin-bottom:22px}
+.tabs button{flex:1;border:0;background:none;cursor:pointer;padding:9px;border-radius:9px;
+  font:600 12.5px 'Inter',sans-serif;color:var(--muted);transition:.15s}
+.tabs button.on{background:var(--card);color:var(--em);font-weight:700;box-shadow:0 1px 3px rgba(15,23,42,0.1)}
+form{display:none;flex-direction:column;gap:16px}
+form.on{display:flex}
+h2{font-size:20px;font-weight:700;letter-spacing:-0.01em}
+h2+p{margin-top:4px;font-size:13px;color:var(--muted)}
+label{display:block}
+label .lbl{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)}
+label input{width:100%;margin-top:7px;padding:12px 16px;border-radius:12px;border:1px solid transparent;
+  background:var(--field);font:500 14px 'Inter',sans-serif;color:var(--ink);outline:none;transition:.15s}
+label input::placeholder{color:var(--faint)}
+label input:focus{border-color:var(--em);background:var(--card)}
+label input.bad{border-color:var(--error)}
+.pw-bars{display:flex;gap:4px;margin-top:8px}
+.pw-bars i{flex:1;height:3px;border-radius:2px;background:var(--rule);transition:background .26s}
+.pw-lbl{margin-top:6px;font-size:11px;color:var(--muted);font-weight:500}
+.msg{font-size:13px;line-height:1.5;display:none;font-weight:500}
+.msg.show{display:block}
+.msg.err{color:var(--error)}
+.msg.ok{color:var(--em)}
+button.go{margin-top:4px;padding:14px;border:0;border-radius:12px;
+  background:linear-gradient(90deg,var(--em),var(--em-d));color:#fff;font:600 14.5px 'Inter',sans-serif;
+  cursor:pointer;box-shadow:0 6px 16px rgba(5,150,105,0.25);transition:filter .15s}
+button.go:hover{filter:brightness(0.95)}
+button.go:disabled{opacity:.55;cursor:default}
+.alt{text-align:center;font-size:13px;color:var(--muted)}
+.alt a{color:var(--em);font-weight:700;cursor:pointer;text-decoration:none}
+.ribbon{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+.ribbon div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 8px;
+  text-align:center;box-shadow:0 4px 12px rgba(148,163,184,0.15)}
+.ribbon b{display:block;font-size:19px;font-weight:800;color:var(--em);font-variant-numeric:tabular-nums}
+.ribbon span{display:block;margin-top:2px;font-size:10.5px;color:var(--muted);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="mark"><span class="ms" style="font-size:32px">eco</span></div>
+    <h1>Saans <span>AQI</span></h1>
+    <p>Delhi's air quality, in your language</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button id="tabIn" class="on" onclick="switchTab('in')">Sign In</button>
+      <button id="tabUp" onclick="switchTab('up')">Sign Up</button>
+    </div>
+
+    <form id="formIn" class="on" onsubmit="doSignIn(event)">
+      <div>
+        <h2>Welcome back!</h2>
+        <p>Sign in to see Delhi's air quality forecast.</p>
+      </div>
+      <label><span class="lbl">Email</span><input type="email" id="siEmail" placeholder="you@example.com" required></label>
+      <label><span class="lbl">Password</span><input type="password" id="siPw" placeholder="Your password" required></label>
+      <div class="msg" id="siMsg"></div>
+      <button type="submit" class="go" id="siBtn">Sign In</button>
+      <div class="alt">No account? <a onclick="switchTab('up')">Create one free</a></div>
+    </form>
+
+    <form id="formUp" onsubmit="doSignUp(event)">
+      <div>
+        <h2>Create account</h2>
+        <p>Join to start forecasting Delhi's air quality.</p>
+      </div>
+      <label><span class="lbl">Your name</span><input type="text" id="suName" placeholder="Full name" required></label>
+      <label><span class="lbl">Email</span><input type="email" id="suEmail" placeholder="you@example.com" required></label>
+      <label>
+        <span class="lbl">Password</span>
+        <input type="password" id="suPw" placeholder="At least six characters">
+        <div class="pw-bars"><i id="pb1"></i><i id="pb2"></i><i id="pb3"></i><i id="pb4"></i></div>
+        <div class="pw-lbl" id="pwLbl">Enter a password</div>
+      </label>
+      <div class="msg" id="suMsg"></div>
+      <button type="submit" class="go" id="suBtn">Create Account</button>
+      <div class="alt">Already have an account? <a onclick="switchTab('in')">Sign in</a></div>
+    </form>
+  </div>
+
+  <div class="ribbon">
+    <div><b id="ribRecords">&mdash;</b><span>Daily Readings</span></div>
+    <div><b id="ribYears">&mdash;</b><span>Years of Data</span></div>
+    <div><b>4</b><span>Languages</span></div>
+  </div>
+</div>
+
+<script>
+const SK = 'saans_session';
+const UK = 'saans_users';
+
+/* Carry accounts over from the pre-rename keys. Idempotent, and it runs before
+   anything reads the session, so a signed-in user is not silently logged out. */
+(function migrateStorage(){
+  try {
+    [['delhi_air_session', SK], ['delhi_air_users', UK]].forEach(([was, now]) => {
+      const old = localStorage.getItem(was);
+      if (old !== null && localStorage.getItem(now) === null) localStorage.setItem(now, old);
+      if (old !== null) localStorage.removeItem(was);
+    });
+  } catch(e) {}
+})();
+
+/* Match whatever theme the app was last left in. */
+try {
+  const t = localStorage.getItem('saans_theme') ||
+    (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', t);
+} catch(e) {}
+
+// Live counts, so the ribbon can't drift from the data
+fetch('/api/stats').then(r=>r.json()).then(st=>{
+  document.getElementById('ribRecords').textContent = st.totalRecords.toLocaleString();
+  document.getElementById('ribYears').textContent   = Object.keys(st.yearlyMeans).length;
+}).catch(()=>{});
+
+// Already logged in?
+try { if (JSON.parse(localStorage.getItem(SK))?.loggedIn) location.href='index.html'; } catch(e){}
+
+function switchTab(t) {
+  document.getElementById('tabIn').classList.toggle('on', t==='in');
+  document.getElementById('tabUp').classList.toggle('on', t==='up');
+  document.getElementById('formIn').classList.toggle('on', t==='in');
+  document.getElementById('formUp').classList.toggle('on', t==='up');
+  clearAll();
+}
+function clearAll() {
+  ['siMsg','suMsg'].forEach(id=>{ const el=document.getElementById(id); el.className='msg'; el.textContent=''; });
+  document.querySelectorAll('input').forEach(i=>i.classList.remove('bad'));
+}
+function say(id, kind, text) {
+  const el = document.getElementById(id);
+  el.className = 'msg show ' + kind;
+  el.textContent = text;
+}
+
+document.getElementById('suPw').addEventListener('input', function(){
+  const pw=this.value; let s=0;
+  if(pw.length>=6)s++; if(pw.length>=10)s++; if(/[A-Z]/.test(pw)&&/[0-9]/.test(pw))s++; if(/[^A-Za-z0-9]/.test(pw))s++;
+  const cols=['','#DC2626','#EA580C','#D97706','#16A34A'];
+  const lbls=['','Weak','Fair','Good','Strong'];
+  for(let i=1;i<=4;i++) document.getElementById('pb'+i).style.background = i<=s?cols[s]:'var(--rule)';
+  document.getElementById('pwLbl').textContent = pw ? (lbls[s]||'Weak') : 'Enter a password';
+});
+
+function getUsers(){ try{return JSON.parse(localStorage.getItem(UK)||'[]')}catch(e){return[]} }
+function hash(pw){ let h=0; for(let i=0;i<pw.length;i++){h=((h<<5)-h)+pw.charCodeAt(i);h=h&h;} return h.toString(36); }
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+
+async function doSignIn(e){
+  e.preventDefault(); clearAll();
+  const btn=document.getElementById('siBtn');
+  const email=document.getElementById('siEmail').value.trim().toLowerCase();
+  const pw=document.getElementById('siPw').value;
+  btn.disabled=true; btn.textContent='Signing in…';
+  await delay(420);
+  const reset=()=>{ btn.disabled=false; btn.textContent='Sign In'; };
+  const user=getUsers().find(u=>u.email===email);
+  if(!user){ say('siMsg','err','No account with that email yet. Create one instead?');
+    document.getElementById('siEmail').classList.add('bad'); return reset(); }
+  if(user.password!==hash(pw)){ say('siMsg','err','That password does not match.');
+    document.getElementById('siPw').classList.add('bad'); return reset(); }
+  say('siMsg','ok','Welcome back, '+user.name+'.');
+  localStorage.setItem(SK, JSON.stringify({email:user.email,name:user.name,loggedIn:true}));
+  await delay(700); location.href='index.html';
+}
+
+async function doSignUp(e){
+  e.preventDefault(); clearAll();
+  const btn=document.getElementById('suBtn');
+  const name=document.getElementById('suName').value.trim();
+  const email=document.getElementById('suEmail').value.trim().toLowerCase();
+  const pw=document.getElementById('suPw').value;
+  if(name.length<2){ say('suMsg','err','Please enter your full name.');
+    document.getElementById('suName').classList.add('bad'); return; }
+  if(!email.includes('@')){ say('suMsg','err','That email does not look right.');
+    document.getElementById('suEmail').classList.add('bad'); return; }
+  if(pw.length<6){ say('suMsg','err','Passwords need at least six characters.');
+    document.getElementById('suPw').classList.add('bad'); return; }
+  btn.disabled=true; btn.textContent='Creating…';
+  await delay(500);
+  const users=getUsers();
+  if(users.find(u=>u.email===email)){ say('suMsg','err','That email is already registered. Sign in instead?');
+    document.getElementById('suEmail').classList.add('bad');
+    btn.disabled=false; btn.textContent='Create Account'; return; }
+  users.push({name,email,password:hash(pw),created:Date.now()});
+  localStorage.setItem(UK,JSON.stringify(users));
+  say('suMsg','ok','Account created. Taking you in…');
+  localStorage.setItem(SK,JSON.stringify({email,name,loggedIn:true}));
+  await delay(800); location.href='index.html';
+}
+</script>
+</body>
+</html>

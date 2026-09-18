@@ -1,0 +1,234 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "desktop",
+      "title": "Today",
+      "is_interactive": true
+    },
+    {
+      "file": "Forecast.dc.html",
+      "x": 1380,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "desktop",
+      "title": "Forecast",
+      "is_interactive": true
+    },
+    {
+      "file": "Ask.dc.html",
+      "x": 2760,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "desktop",
+      "title": "AI Chat",
+      "is_interactive": true
+    },
+    {
+      "file": "Patterns.dc.html",
+      "x": 4140,
+      "y": 0,
+      "w": 1280,
+      "h": 1100,
+      "page": "desktop",
+      "title": "Analytics"
+    },
+    {
+      "file": "Map.dc.html",
+      "x": 5520,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "desktop",
+      "title": "Ward Map"
+    },
+    {
+      "file": "Severity.dc.html",
+      "x": 0,
+      "y": 1220,
+      "w": 1500,
+      "h": 1100,
+      "page": "desktop",
+      "title": "Severity states"
+    },
+    {
+      "file": "TodayPhone.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1400,
+      "page": "phone",
+      "title": "Today",
+      "is_interactive": true
+    },
+    {
+      "file": "ForecastPhone.dc.html",
+      "x": 490,
+      "y": 0,
+      "w": 390,
+      "h": 1300,
+      "page": "phone",
+      "title": "Forecast",
+      "is_interactive": true
+    },
+    {
+      "file": "AskPhone.dc.html",
+      "x": 980,
+      "y": 0,
+      "w": 390,
+      "h": 1000,
+      "page": "phone",
+      "title": "AI Chat",
+      "is_interactive": true
+    },
+    {
+      "file": "PatternsPhone.dc.html",
+      "x": 1470,
+      "y": 0,
+      "w": 390,
+      "h": 1500,
+      "page": "phone",
+      "title": "Analytics"
+    },
+    {
+      "file": "EditorialMain.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "editorial",
+      "title": "Today"
+    },
+    {
+      "file": "EditorialForecast.dc.html",
+      "x": 1380,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "editorial",
+      "title": "Forecast"
+    },
+    {
+      "file": "EditorialAsk.dc.html",
+      "x": 2760,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "editorial",
+      "title": "Ask"
+    },
+    {
+      "file": "EditorialPatterns.dc.html",
+      "x": 4140,
+      "y": 0,
+      "w": 1280,
+      "h": 900,
+      "page": "editorial",
+      "title": "Patterns"
+    },
+    {
+      "file": "EditorialSeverity.dc.html",
+      "x": 0,
+      "y": 1080,
+      "w": 1160,
+      "h": 900,
+      "page": "editorial",
+      "title": "Severity states"
+    },
+    {
+      "file": "EditorialTodayPhone.dc.html",
+      "x": 0,
+      "y": 2120,
+      "w": 390,
+      "h": 844,
+      "page": "editorial",
+      "title": "Today · narrow"
+    },
+    {
+      "file": "EditorialForecastPhone.dc.html",
+      "x": 490,
+      "y": 2120,
+      "w": 390,
+      "h": 844,
+      "page": "editorial",
+      "title": "Forecast · narrow"
+    },
+    {
+      "file": "EditorialAskPhone.dc.html",
+      "x": 980,
+      "y": 2120,
+      "w": 390,
+      "h": 844,
+      "page": "editorial",
+      "title": "Ask · narrow"
+    },
+    {
+      "file": "EditorialPatternsPhone.dc.html",
+      "x": 1470,
+      "y": 2120,
+      "w": 390,
+      "h": 844,
+      "page": "editorial",
+      "title": "Patterns · narrow"
+    },
+    {
+      "file": "MapPhone.dc.html",
+      "x": 1960,
+      "y": 0,
+      "w": 390,
+      "h": 1120,
+      "page": "phone",
+      "title": "Ward Map"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "web-note",
+      "x": 1580,
+      "y": 1220,
+      "w": 320,
+      "page": "desktop",
+      "text": "Web, 1280 wide — the Stitch look on the app's web layout.\n\nInter, emerald header with pill nav, white 16px cards on slate. Content is a 996px column.\n\nFive tabs now: Ward Map sits between Today and Forecast. Its areas are grey because the app has no CPCB station key yet — it draws no colour rather than inventing readings.\n\nAnalytics covers 2015–2025; the 2015–2019 dots are hollow because those years come from a second source that reads about 10 AQI higher.\n\nToday, Forecast and AI Chat are live: tap a day, a month or a year, switch language. The moon icon flips dark mode."
+    },
+    {
+      "id": "phone-note",
+      "x": 2450,
+      "y": 0,
+      "w": 300,
+      "page": "phone",
+      "text": "The same pages under 860px, where the app collapses to one column.\n\nNot a separate product — the identical markup reflowed. Kept here so the narrow breakpoint has a reference too."
+    },
+    {
+      "id": "editorial-note",
+      "x": 1380,
+      "y": 1080,
+      "w": 320,
+      "page": "editorial",
+      "text": "Retired. The \"editorial calm\" direction the app used before it moved to the Stitch look on 14 September 2026.\n\nKept for reference only — the app no longer matches these boards."
+    }
+  ],
+  "pages": [
+    {
+      "id": "desktop",
+      "name": "Web"
+    },
+    {
+      "id": "phone",
+      "name": "Narrow"
+    },
+    {
+      "id": "editorial",
+      "name": "Editorial (retired)"
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "desktop"
+  }
+}
