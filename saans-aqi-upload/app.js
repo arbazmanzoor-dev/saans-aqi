@@ -309,6 +309,7 @@ async function loadForecastYear() {
   const yr = state.years[state.yearIdx];
   const rows = await fetch(`${API}/ml-forecast/${yr}`).then(r => r.json()).catch(() => []);
   state.monthly = rows.map(r => r.predicted);
+  state.monthlyRows = rows;            // each carries its own measured range
   renderForecast();
 }
 
@@ -334,22 +335,22 @@ async function renderForecast() {
   if (state.scope === 'month') state.scrubSel = Math.min(state.scrubSel, 11);
 
   /* Day / week values come from the server so the day factors apply. */
-  let value, heading;
+  let value, heading, lo, hi, row = null;
   if (state.scope === 'month') {
+    row = (state.monthlyRows || [])[state.scrubSel] || {};
     value = items[state.scrubSel].value;
+    lo = row.ciLower; hi = row.ciUpper;
     heading = `${MONTHS[state.scrubSel]} ${yr}`;
-  } else if (state.scope === 'year') {
-    value = items[0].value; heading = `Annual average · ${yr}`;
   } else {
-    const body = state.scope === 'day'
-      ? { type:'day', month: state.month+1, day: state.scrubSel+1, targetYear: yr }
-      : { type:'week', week: state.scrubSel+1, targetYear: yr };
+    const body = state.scope === 'day'  ? { type:'day', month: state.month+1, day: state.scrubSel+1, targetYear: yr }
+               : state.scope === 'week' ? { type:'week', week: state.scrubSel+1, targetYear: yr }
+               :                          { type:'year', targetYear: yr };
     const r = await fetch(`${API}/predict-ml`, { method:'POST',
       headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(x=>x.json());
-    value = r.predicted;
-    heading = state.scope === 'day'
-      ? `${MONTHS[state.month]} ${state.scrubSel+1}, ${yr}`
-      : `Week ${state.scrubSel+1} of ${yr}`;
+    value = r.predicted; lo = r.ciLower; hi = r.ciUpper;
+    heading = state.scope === 'day'  ? `${MONTHS[state.month]} ${state.scrubSel+1}, ${yr}`
+            : state.scope === 'week' ? `Week ${state.scrubSel+1} of ${yr}`
+            :                          `Annual average · ${yr}`;
   }
 
   const b = band(value);
@@ -359,9 +360,9 @@ async function renderForecast() {
   const num = document.getElementById('fcNum'); num.textContent = value; num.style.color = b.color;
   const lbl = document.getElementById('fcBand'); lbl.textContent = b.label; lbl.style.color = b.color;
 
-  /* ±1.96 × the model's 18.4% walk-forward error. */
-  const spread = Math.round(value * 0.184 * 1.96);
-  const lo = Math.max(0, value - spread), hi = value + spread;
+  /* The server's range: where 95% of past forecasts of this kind landed,
+     measured per month (so lopsided, and wider in the monsoon). */
+  if (lo == null || hi == null) { lo = value; hi = value; }
   const pct = v => Math.min(100, (v/500)*100);
   const span = document.getElementById('ciSpan');
   span.style.left = pct(lo)+'%'; span.style.width = (pct(hi)-pct(lo))+'%'; span.style.background = b.color;
@@ -394,9 +395,18 @@ async function renderForecast() {
     year:'The mean of all twelve modelled months.',
   }[state.scope];
 
-  document.getElementById('fcNote').textContent = (state.scope === 'month' && state.scrubSel === 10)
+  const about = (state.scope === 'month' && state.scrubSel === 10)
     ? 'November is the worst month of the Delhi year, every year on record here — roughly four times August.'
     : 'Modelled from the seasonal shape of the last five complete years, held against a flat level trend.';
+  const ytd = row && row.yearSoFar;
+  const ytdNote = ytd
+    ? ` Adjusted ${ytd.adjustmentPct >= 0 ? '+' : ''}${ytd.adjustmentPct}% for how ${yr} has run so far `
+      + `(January–${MONTHS[ytd.throughMonth - 1]} measured).`
+    : '';
+  const rangeNote = (row && row.source === 'observed')
+    ? ' This month has already been measured.'
+    : ' The range is where 95% of past forecasts like this one landed.';
+  document.getElementById('fcNote').textContent = about + ytdNote + rangeNote;
 
   renderYearGrid();
 }

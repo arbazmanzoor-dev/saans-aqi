@@ -1,4 +1,9 @@
 'use strict';
+/* A Delhi app keeps Delhi's calendar. Hosts usually run on UTC (some set TZ=UTC
+   outright), which would put "today" a day behind India between midnight and
+   5:30 am. So always India time, set before anything reads the clock; only
+   SAANS_TZ can change it. */
+process.env.TZ = process.env.SAANS_TZ || 'Asia/Kolkata';
 const express = require('express');
 const cors    = require('cors');
 const XLSX    = require('xlsx');
@@ -438,6 +443,94 @@ function predict(type, month, day, week, targetYear, method) {
   return predictMonth(month||1, yr, method);
 }
 
+/* ── Honest ranges ─────────────────────────────────────────────────────────
+   A "likely range" is how wrong this kind of forecast has actually been,
+   measured walk-forward on the same years statBacktest uses — each forecast
+   from earlier years only, every one with five complete years behind it.
+   Errors are in log terms, so a range is lopsided (a forecast can be far too
+   low more easily than far too high), and every month gets its own: the
+   monsoon is much harder to call than November. With only a handful of test
+   years per month, each is shrunk toward the pooled figure.
+   A single day or week also scatters around its month, so those ranges add
+   the spread of real days (or 7-day runs) around their month's mean. */
+const RANGE_SHRINK = 4;     // pseudo-years pulling each month toward the pooled error
+const rangeModel = (() => {
+  const rms = v => v.length ? Math.sqrt(v.reduce((s, x) => s + x * x, 0) / v.length) : 0;
+  const tests = completeSeriesYears.slice(BACKTEST_FROM);
+  const res = {}, yearRes = [];
+  for (let m = 1; m <= 12; m++) res[m] = [];
+  for (const y of tests) {
+    const past  = completeSeriesYears.filter(yr => yr < y);
+    const lvl   = projectLevel(y, fitLevel(past, annualLevels));
+    const shape = fitShape(past, annualLevels, monthlySeries).shape;
+    let sum = 0;
+    for (let m = 1; m <= 12; m++) {
+      const f = lvl * shape[m]; sum += f;
+      res[m].push(Math.log(monthlySeries[`${y}_${m}`] / f));
+    }
+    yearRes.push(Math.log(annualLevels[y] / (sum / 12)));
+  }
+  const pooled = rms(Object.values(res).flat()), n = tests.length;
+  const month = {};
+  for (let m = 1; m <= 12; m++)
+    month[m] = Math.sqrt((n * rms(res[m]) ** 2 + RANGE_SHRINK * pooled ** 2) / (n + RANGE_SHRINK));
+
+  // days and 7-day runs around their own month, from the CPCB daily readings
+  const dayRes = {}, weekRes = {}, byMonth = {};
+  for (let m = 1; m <= 12; m++) { dayRes[m] = []; weekRes[m] = []; }
+  allRecords.forEach(r => { (byMonth[`${r.year}_${r.month}`] ||= []).push(r); });
+  for (const recs of Object.values(byMonth)) {
+    if (recs.length < 20) continue;
+    recs.sort((a, b) => a.day - b.day);
+    const m = recs[0].month;
+    const mean = recs.reduce((s, r) => s + r.aqi, 0) / recs.length;
+    const expect = recs.map(r => mean * getDayFactor(m, r.day));
+    recs.forEach((r, i) => dayRes[m].push(Math.log(r.aqi / expect[i])));
+    for (let i = 0; i + 7 <= recs.length; i += 7) {
+      const got = recs.slice(i, i + 7).reduce((s, r) => s + r.aqi, 0);
+      const exp = expect.slice(i, i + 7).reduce((s, v) => s + v, 0);
+      weekRes[m].push(Math.log(got / exp));
+    }
+  }
+  const day = {}, week = {};
+  for (let m = 1; m <= 12; m++) { day[m] = rms(dayRes[m]); week[m] = rms(weekRes[m]); }
+  return { month, day, week, year: rms(yearRes), pooled, testYears: tests };
+})();
+
+function rangeFor(value, sigma) {
+  return { ciLower: Math.max(0, Math.round(value * Math.exp(-1.96 * sigma))),
+           ciUpper: Math.round(value * Math.exp(1.96 * sigma)),
+           ciSigma: +sigma.toFixed(3) };
+}
+const pctRange = s => `−${Math.round((1 - Math.exp(-1.96 * s)) * 100)}%/+${Math.round((Math.exp(1.96 * s) - 1) * 100)}%`;
+console.log(`📏 Forecast ranges (walk-forward ${rangeModel.testYears[0]}–${rangeModel.testYears[rangeModel.testYears.length - 1]}): `
+  + `Oct ${pctRange(rangeModel.month[10])}, Apr ${pctRange(rangeModel.month[4])}, year ${pctRange(rangeModel.year)}`);
+
+/* ── Year so far ──────────────────────────────────────────────────────────
+   Once the forecast year is under way, how it has run so far says something
+   about the rest of it. Walk-forward on 2020–2024: with two to seven months
+   observed, moving the remaining months half-way toward that year's anomaly
+   cut their error from 17.6% to 16.3% (13.3% → 11.2% outside the COVID
+   years). With August or later in hand it made things worse — the winter's
+   smoke is set by that season's burning and weather — so it stops there. */
+const YTD_WEIGHT = 0.5, YTD_MIN_MONTHS = 2, YTD_MAX_MONTHS = 7;
+const ytdCache = {};
+function yearSoFar(yr) {
+  if (yr in ytdCache) return ytdCache[yr];
+  const row = yearMonthMatrix[yr];
+  let k = 0;
+  if (row) while (k < 12 && row[k + 1] != null) k++;
+  let out = null;
+  if (k >= YTD_MIN_MONTHS && k <= YTD_MAX_MONTHS) {
+    const lvl = projectLevel(yr, levelFit);
+    let s = 0;
+    for (let m = 1; m <= k; m++) s += Math.log(row[m] / (lvl * monthShape[m]));
+    const anomaly = s / k;
+    out = { through: k, anomaly: +anomaly.toFixed(3), factor: +Math.exp(YTD_WEIGHT * anomaly).toFixed(3) };
+  }
+  return (ytdCache[yr] = out);
+}
+
 function predictML(month, targetYear) {
   const m   = parseInt(month)||1;
   const yr  = parseInt(targetYear)||2026;
@@ -451,11 +544,18 @@ function predictML(month, targetYear) {
     (ML_META.model_names || ['rf','xgb','gb']).forEach(n => {
       if (r[n] != null) members[n] = r[n];
     });
-    return { success:true, predicted:r.predicted, ...members,
+    const observed = r.source === 'observed';
+    const ytd = observed ? null : yearSoFar(yr);
+    const adjusted = !!(ytd && m > ytd.through);
+    const predicted = adjusted ? Math.round(r.predicted * ytd.factor) : r.predicted;
+    return { success:true, predicted, ...members,
       models:ML_META.model_names, confidence:r.confidence, r2:r.r2,
-      source: r.source === 'observed' ? 'observed' : 'ml_ensemble',
-      ciLower:Math.max(0,Math.round(r.predicted-1.96*(ms.std||80))),
-      ciUpper:Math.round(r.predicted+1.96*(ms.std||80)),
+      source: observed ? 'observed' : 'ml_ensemble',
+      // an observed month is a measurement, not a forecast: no range around it
+      ...(observed ? { ciLower: predicted, ciUpper: predicted, ciSigma: 0 }
+                   : rangeFor(predicted, rangeModel.month[m])),
+      yearSoFar: adjusted ? { throughMonth: ytd.through,
+                              adjustmentPct: Math.round((ytd.factor - 1) * 100) } : null,
       historicalMean:ms.mean||globalStats.mean, historicalStd:ms.std||globalStats.std };
   }
   return { success:true, ...predictMonth(m,yr,'ensemble'), source:'statistical_fallback' };
@@ -688,10 +788,11 @@ app.post('/api/predict-ml', (req,res) => {
     (ML_META.model_names || []).forEach(n => {
       if (all.every(r => r[n] != null)) members[n] = mean(n);   // annual, not January's
     });
-    return res.json({ ...all[0], ...members, predicted:mean('predicted'),
-      month:null, targetYear:yr, type:'year',
+    const annual = mean('predicted');
+    return res.json({ ...all[0], ...members, predicted:annual,
+      month:null, targetYear:yr, type:'year', yearSoFar:null,
       historicalMean:globalStats.mean, historicalStd:globalStats.std,
-      ciLower:mean('ciLower'), ciUpper:mean('ciUpper') });
+      ...rangeFor(annual, rangeModel.year) });
   }
 
   if (type === 'week' && week) {
@@ -699,19 +800,17 @@ app.post('/api/predict-ml', (req,res) => {
     // selector says.
     const wf   = getWeekFactor(parseInt(week));
     const base = predictML(wf.month, yr);
-    return res.json({ ...base, month:wf.month, targetYear:yr, type:'week',
-      predicted: Math.max(1,Math.round(base.predicted*wf.factor)),
-      ciLower:   Math.max(0,Math.round((base.ciLower||0)*wf.factor)),
-      ciUpper:   Math.round((base.ciUpper||500)*wf.factor) });
+    const value = Math.max(1, Math.round(base.predicted*wf.factor));
+    return res.json({ ...base, month:wf.month, targetYear:yr, type:'week', predicted:value,
+      ...rangeFor(value, Math.hypot(rangeModel.month[wf.month], rangeModel.week[wf.month])) });
   }
 
   const base = predictML(m,yr);
   if (type === 'day' && day) {
     const f = getDayFactor(m,parseInt(day));
-    return res.json({ ...base, month:m, targetYear:yr, type:'day',
-      predicted: Math.max(1,Math.round(base.predicted*f)),
-      ciLower:   Math.max(0,Math.round((base.ciLower||0)*f)),
-      ciUpper:   Math.round((base.ciUpper||500)*f) });
+    const value = Math.max(1, Math.round(base.predicted*f));
+    return res.json({ ...base, month:m, targetYear:yr, type:'day', predicted:value,
+      ...rangeFor(value, Math.hypot(rangeModel.month[m], rangeModel.day[m])) });
   }
   res.json({ ...base, month:m, targetYear:yr, type:'month' });
 });
@@ -722,10 +821,7 @@ app.get('/api/ml-forecast/:year', (req,res) => {
   const rows = Array.from({length:12},(_,i) => {
     const m  = i+1;
     const ml = predictML(m,yr);
-    const ms = monthlyStats[m]||{};
-    return { month:m, monthName:MONTHS[m-1], ...ml,
-      ciLower:Math.max(0,Math.round(ml.predicted-1.96*(ms.std||80))),
-      ciUpper:Math.round(ml.predicted+1.96*(ms.std||80)) };
+    return { month:m, monthName:MONTHS[m-1], ...ml };
   });
   res.json(rows);
 });
@@ -819,7 +915,14 @@ app.get('/api/ml-meta', (req,res) => {
     features: ML_META.features || [],
     training_records: ML_META.training_records || 0,
     generated: ML_META.generated || null,
-    total_lookup: Object.keys(ML_LOOKUP).length });
+    total_lookup: Object.keys(ML_LOOKUP).length,
+    ranges: { method: 'walk-forward log error, 95% (±1.96 sd), shrunk toward pooled',
+              testYears: rangeModel.testYears, year: +rangeModel.year.toFixed(3),
+              month: Object.fromEntries(Object.entries(rangeModel.month).map(([k, v]) => [k, +v.toFixed(3)])),
+              day:   Object.fromEntries(Object.entries(rangeModel.day).map(([k, v]) => [k, +v.toFixed(3)])),
+              week:  Object.fromEntries(Object.entries(rangeModel.week).map(([k, v]) => [k, +v.toFixed(3)])) },
+    yearSoFar: { rule: `weight ${YTD_WEIGHT} while ${YTD_MIN_MONTHS}–${YTD_MAX_MONTHS} months are observed`,
+                 years: Object.fromEntries(Object.keys(yearMonthMatrix).map(y => [y, yearSoFar(+y)]).filter(([, v]) => v)) } });
 });
 
 // Real-time AQI

@@ -58,10 +58,23 @@ TRAIN_WINDOW     = 5
 RECENCY_HALFLIFE = 8.0  # mild preference for recent rows inside the window
 
 # Diwali timing is knowable years ahead, so it looks like free signal — but it
-# measurably costs accuracy on the months it should help: Oct+Nov walk-forward
-# MAPE 11.19% with it, 10.17% without. Five years is too little to learn the
-# effect. Flip to True to put it back.
+# measurably costs accuracy on the months it should help. Re-tested 2026-09-21
+# with ten years of history, walk-forward Oct+Nov MAPE:
+#   5-year window: 11.60% without, 12.98% with
+#   10-year window: 11.44% without, 13.54% with
+# Still too few Diwalis to learn from. `--diwali` re-runs the test.
+# (The 10-year window without Diwali is a wash, not a win: MAPE 18.00% vs
+# 18.39% but MAE 33.2 vs 32.8 and R² 0.767 vs 0.779, so 5 years stays.)
 USE_DIWALI_TIMING = False
+
+# Command-line switches for experiments, so a variant can be tested without
+# editing this file or overwriting the served model:
+#   --diwali       add the Diwali-timing features
+#   --window N     train on the last N years instead of TRAIN_WINDOW
+#   --dry-run      run the walk-forward and print it; write nothing
+if '--diwali' in sys.argv: USE_DIWALI_TIMING = True
+if '--window' in sys.argv: TRAIN_WINDOW = int(sys.argv[sys.argv.index('--window') + 1])
+DRY_RUN = '--dry-run' in sys.argv
 
 
 # ── data ────────────────────────────────────────────────────────────────────
@@ -350,6 +363,14 @@ def main():
     per_year = {y: round(100*sum(v)/len(v), 1) for y, v in sorted(per_year.items())}
     print('  by year: ' + '  '.join(f'{y} {v}%' for y, v in per_year.items())
           + '   ← 2020-21 are the COVID dip and its rebound')
+    octnov = [(b, a) for _, m, b, a, _ in rows if m in (10, 11)]
+    octnov_clim = [(c, a) for _, m, _, a, c in rows if m in (10, 11)]
+    print(f'  Oct+Nov only: MAPE {score(octnov)["mape"]:.2f}%'
+          f'  (climatology {score(octnov_clim)["mape"]:.2f}%)'
+          f'   [window {TRAIN_WINDOW}, Diwali {"on" if USE_DIWALI_TIMING else "off"}]')
+    if DRY_RUN:
+        print('\n(dry run — nothing written)')
+        return
 
     # Ensemble weights from held-out error, not hand-picked.
     inverse = {n: 1/metrics[n]['mae'] for n in names}

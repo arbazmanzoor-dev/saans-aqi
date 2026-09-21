@@ -21,6 +21,11 @@ const path = require('path');
 
 const MODEL_FILE = path.join(__dirname, 'nextday_model.json');
 const CACHE_MS   = 30 * 60 * 1000;
+/* Open-Meteo's free API limits requests per IP address, and shared hosts put many
+   apps behind one address — so ask less often, retry once, and when it still
+   refuses, fall back to the last good forecast rather than to nothing. */
+const WEATHER_TTL_MS   = 60 * 60 * 1000;      // a forecast stays good for an hour
+const WEATHER_STALE_MS = 3 * 60 * 60 * 1000;  // after a failure, one up to 3 h old will do
 const LAT = 28.6139, LON = 77.2090;
 
 let MODEL = null;
@@ -68,7 +73,7 @@ function climatologyFor(date) {
 }
 
 /* ── weather: today's and tomorrow's, the same shape the trainer saw ─────── */
-async function fetchWeather() {
+async function fetchWeatherOnce() {
   const url = 'https://api.open-meteo.com/v1/forecast'
     + `?latitude=${LAT}&longitude=${LON}`
     + '&daily=temperature_2m_mean,temperature_2m_min,relative_humidity_2m_mean,'
@@ -79,9 +84,16 @@ async function fetchWeather() {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    const j = await r.json();
-    if (!j.daily || !j.hourly) throw new Error('Open-Meteo returned no forecast');
+    let r;
+    try { r = await fetch(url, { signal: ctrl.signal }); }
+    catch (e) {
+      throw new Error(e.name === 'AbortError' ? 'the weather forecast timed out'
+        : `could not reach Open-Meteo${e.cause && e.cause.code ? ` (${e.cause.code})` : ''}`);
+    }
+    const j = await r.json().catch(() => ({}));
+    // Open-Meteo explains a refusal in `reason` (for example a rate limit): keep it.
+    if (!j.daily || !j.hourly)
+      throw new Error(`Open-Meteo returned no forecast (HTTP ${r.status}${j.reason ? `: ${j.reason}` : ''})`);
 
     // hourly → the daily mixing-height and calm-hour figures the model expects
     const hours = {};
@@ -117,6 +129,28 @@ async function fetchWeather() {
     });
     return days;
   } finally { clearTimeout(timer); }
+}
+
+let wxCache = null;   // { days, fetchedAt }
+
+async function fetchWeather() {
+  if (wxCache && Date.now() - wxCache.fetchedAt < WEATHER_TTL_MS) return wxCache;
+  let lastErr;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      wxCache = { days: await fetchWeatherOnce(), fetchedAt: Date.now() };
+      return wxCache;
+    } catch (e) {
+      lastErr = e;
+      console.log(`↻  Open-Meteo: ${e.message}${attempt === 1 ? ' — retrying once' : ''}`);
+      if (attempt === 1) await new Promise(ok => setTimeout(ok, 2000));
+    }
+  }
+  if (wxCache && Date.now() - wxCache.fetchedAt < WEATHER_STALE_MS) {
+    console.log(`   using the forecast fetched ${Math.round((Date.now() - wxCache.fetchedAt) / 60000)} min ago`);
+    return { ...wxCache, stale: true };
+  }
+  throw lastErr;
 }
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -159,10 +193,9 @@ async function tomorrowAQI(reading) {
   let weather;
   try { weather = await fetchWeather(); }
   catch (e) {
-    return { available: false, reason: 'no_weather',
-             message: e.name === 'AbortError' ? 'The weather forecast timed out.' : e.message };
+    return { available: false, reason: 'no_weather', message: e.message };
   }
-  const wToday = weather[iso(now)], wTomorrow = weather[iso(next)];
+  const wToday = weather.days[iso(now)], wTomorrow = weather.days[iso(next)];
   if (!wToday || !wTomorrow)
     return { available: false, reason: 'no_weather', message: 'The weather forecast did not cover both days.' };
 
@@ -197,6 +230,8 @@ async function tomorrowAQI(reading) {
       nightMixing: Math.round(wTomorrow.blh_night), tempMin: wTomorrow.temperature_2m_min,
     },
     basis: 'tomorrow from today\'s station reading and the weather forecast',
+    weatherFetched: new Date(weather.fetchedAt).toISOString(),
+    weatherStale: !!weather.stale,
     accuracy: { mae: MODEL.walk_forward.mae, mape: MODEL.walk_forward.mape,
                 versusRule: MODEL.walk_forward.baselines.app_rule_phi_0744.mae,
                 years: MODEL.walk_forward.years },
