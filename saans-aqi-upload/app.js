@@ -693,7 +693,8 @@ function renderTomorrow() {
     t.drivers.length ? `${verdict} — ${t.drivers.join(', and ')}.` : `${verdict}.`;
   document.getElementById('tmrBasis').textContent =
     (t.test ? 'TEST DATA — built on an invented reading. ' : '')
-    + `From today's reading of ${t.anchor.aqi} and tomorrow's weather. `
+    + `From today's reading of ${t.anchor.aqi} and tomorrow's weather`
+    + (t.weatherCredit ? ` (${t.weatherCredit.replace(/^Weather: /, '')})` : '') + '. '
     + `Typically out by about ${Math.round(t.accuracy.mae)} AQI, tested on ${t.accuracy.years}.`;
   card.classList.remove('hidden');
 }

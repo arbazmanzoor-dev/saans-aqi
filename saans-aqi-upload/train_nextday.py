@@ -143,7 +143,133 @@ def export_trees(model):
         })
     return trees
 
+# ── MET Norway models ─────────────────────────────────────────────────────────
+# On a shared host Open-Meteo's free limit is often used up by other apps, so
+# the server falls back to MET Norway's forecast. MET has no mixing height or
+# sunshine, and it forecasts from *now*, so the early part of today is missing.
+# These models use only what MET provides, with today summarised from a fixed
+# hour onwards — the server picks the earliest window still fully ahead of it.
+# Walk-forward (forecast noise on tomorrow): today-from-12:00 29.0, from 18:00
+# 29.2, from 21:00 29.9 AQI mean error, against 27.9 for the Open-Meteo model
+# and 31.0 for the old rule. Cloud and pressure were tried and made it worse.
+HOURLY = HERE / "data" / "weather_hourly_2015_2025.csv"
+MET_WINDOWS = (12, 18, 21)
+MET_KEYS = ["calm", "dir_cos", "dir_sin", "rain", "rh", "t_mean", "t_min", "w_max", "w_mean"]
+CALM_KMH = 5.0
+MET_NOISE = {"t_mean": 1.0, "t_min": 1.3, "rh": 6.0, "w_max": 2.0, "w_mean": 1.2}
+
+
+def load_hourly():
+    hours = collections.defaultdict(dict)
+    for r in csv.DictReader(HOURLY.open()):
+        d = dt.date.fromisoformat(r["time"][:10])
+        hours[d][int(r["time"][11:13])] = {k: float(v) for k, v in r.items() if k != "time"}
+    return hours
+
+
+def summarise(hours, d, h0):
+    """One day's weather from hour h0 to 23 — the same summary nextday.js makes
+    from MET's hourly forecast. None unless every hour is there."""
+    hs = [hours[d][h] for h in range(h0, 24) if h in hours.get(d, {})]
+    if len(hs) < 24 - h0:
+        return None
+    t = [x["temperature_2m"] for x in hs]; w = [x["wind_speed_10m"] for x in hs]
+    u = sum(x["wind_speed_10m"] * math.sin(math.radians(x["wind_direction_10m"])) for x in hs)
+    v = sum(x["wind_speed_10m"] * math.cos(math.radians(x["wind_direction_10m"])) for x in hs)
+    n = math.hypot(u, v) or 1.0
+    return {"t_mean": st.mean(t), "t_min": min(t), "rh": st.mean(x["relative_humidity_2m"] for x in hs),
+            "w_max": max(w), "w_mean": st.mean(w), "dir_sin": u / n, "dir_cos": v / n,
+            "rain": math.log1p(sum(x["precipitation"] for x in hs)),
+            "calm": sum(x < CALM_KMH for x in w) / len(w)}
+
+
+def met_noisy(f, rng):
+    o = dict(f)
+    for k, s in MET_NOISE.items():
+        o[k] = o[k] + rng.gauss(0, s)
+    o["calm"] = min(1.0, max(0.0, o["calm"] * (1 + rng.gauss(0, .08))))
+    o["rain"] = max(0.0, o["rain"] * math.exp(rng.gauss(0, .6)))
+    o["w_max"] = max(0.0, o["w_max"]); o["w_mean"] = max(0.0, o["w_mean"])
+    o["rh"] = min(100.0, max(1.0, o["rh"]))
+    return o
+
+
+def met_rows(aqi, hours, clim, days, h0, rng=None):
+    X, y, meta = [], [], []
+    for d in days:
+        n = d + dt.timedelta(days=1)
+        if d not in aqi or n not in aqi:
+            continue
+        ct, cn = clim.get((d.month, d.day)), clim.get((n.month, n.day))
+        fn, ft = summarise(hours, n, 0), summarise(hours, d, h0)
+        if not ct or not cn or fn is None or ft is None:
+            continue
+        if rng is not None:
+            fn = met_noisy(fn, rng)
+        doy = n.timetuple().tm_yday
+        X.append([math.log(aqi[d]), math.log(aqi[d] / ct), math.log(cn), math.log(cn / ct),
+                  math.sin(2*math.pi*doy/365), math.cos(2*math.pi*doy/365)]
+                 + [fn[k] for k in MET_KEYS] + [ft[k] for k in MET_KEYS]
+                 + [fn[k] - ft[k] for k in MET_KEYS])
+        y.append(math.log(aqi[n] / cn))
+        meta.append((aqi[n], aqi[d], ct, cn))
+    return np.array(X), np.array(y), meta
+
+
+def train_met(aqi):
+    import random
+    hours = load_hourly()
+    years = sorted({d.year for d in aqi})
+    windows = {}
+    for h0 in MET_WINDOWS:
+        err, pct, rule, resid = [], [], [], []
+        for test_year in range(2019, max(years) + 1):
+            train_years = [y for y in years if y < test_year]
+            c = climatology(aqi, train_years)
+            Xtr, ytr, _ = met_rows(aqi, hours, c, [d for d in sorted(aqi) if d.year in train_years], h0)
+            Xte, _, m = met_rows(aqi, hours, c, [d for d in sorted(aqi) if d.year == test_year], h0,
+                                 rng=random.Random(7))
+            if not len(Xte):
+                continue
+            p = GradientBoostingRegressor(**PARAMS).fit(Xtr, ytr).predict(Xte)
+            for (act, today, ct, cn), v in zip(m, p):
+                err.append(abs(cn*math.exp(v) - act)); pct.append(abs(cn*math.exp(v) - act) / act)
+                rule.append(abs(cn * math.exp(0.744 * math.log(today / ct)) - act))
+                resid.append(v - math.log(act / cn))
+        clim_full = climatology(aqi, years)
+        X, y, _ = met_rows(aqi, hours, clim_full, sorted(aqi), h0)
+        model = GradientBoostingRegressor(**PARAMS).fit(X, y)
+        idx = np.random.default_rng(h0).choice(len(X), size=min(20, len(X)), replace=False)
+        windows[str(h0)] = {
+            "today_from_hour": h0,
+            "init": float(model.init_.constant_[0][0]),
+            "trees": export_trees(model),
+            "rel_sigma": round(float(np.sqrt(np.mean(np.square(resid)))), 4),
+            "walk_forward": {"years": f"2019-{max(years)}", "mae": round(st.mean(err), 1),
+                             "mape": round(100 * st.mean(pct), 1), "rule_mae": round(st.mean(rule), 1)},
+            "fixture": {"x": [[float(v) for v in X[i]] for i in idx],
+                        "expected_log": [float(v) for v in model.predict(X[idx])]},
+        }
+        print(f"  MET window from {h0:02d}:00 — walk-forward MAE {windows[str(h0)]['walk_forward']['mae']}"
+              f" (old rule {windows[str(h0)]['walk_forward']['rule_mae']}), {len(X)} day-pairs")
+    out = {
+        "kind": "gradient_boosting_next_day_met_norway",
+        "generated": dt.date.today().isoformat(),
+        "keys": MET_KEYS, "calm_kmh": CALM_KMH, "learning_rate": PARAMS["learning_rate"],
+        "climatology": {f"{m}_{d}": v for (m, d), v in sorted(climatology(aqi, years).items())},
+        "windows": windows,
+        "note": ("Inputs are only what MET Norway forecasts: temperature, humidity, wind and rain, "
+                 "hourly. Today is summarised from `today_from_hour` to 23:00 IST; tomorrow is the "
+                 "whole day. Scores include realistic forecast error on tomorrow's weather."),
+    }
+    (HERE / "nextday_met_model.json").write_text(json.dumps(out))
+    print(f"  nextday_met_model.json written — {(HERE / 'nextday_met_model.json').stat().st_size // 1024} KB")
+
+
 def main():
+    if '--met-only' in sys.argv:
+        train_met(load_aqi())
+        return
     aqi, wx = load_aqi(), load_weather()
     all_years = sorted({d.year for d in aqi})
     clim_full = climatology(aqi, all_years)
@@ -199,6 +325,8 @@ def main():
     (HERE / "nextday_model.json").write_text(json.dumps(out))
     size = (HERE / "nextday_model.json").stat().st_size / 1024
     print(f"  nextday_model.json written — {len(out['trees'])} trees, {size:.0f} KB, rel_sigma {out['rel_sigma']}")
+    if HOURLY.exists():
+        train_met(aqi)
 
 if __name__ == "__main__":
     main()
