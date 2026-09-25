@@ -92,8 +92,7 @@ function healthWarnings(aqi) {
 }
 
 const state = { page:'today', week:[], weekSel:0, live:null, anchor:null, stats:null,
-                /* forecast: nothing until a date is picked */
-                scope:'day', date:null, forecastYear:null, monthly:null, monthlyRows:[],
+                scope:'month', month:new Date().getMonth(), yearIdx:0, years:[], monthly:null,
                 lang:'en' };
 
 /* ═══ THEME ═══ */
@@ -277,112 +276,85 @@ async function initAlerts() {
   });
 }
 
-/* ═══ FORECAST ═══
-   The visitor chooses; the page answers. Nothing is shown until a date is
-   picked, and the scope says what that date means — that day, the week it
-   falls in, its month, or its whole year. The year comes from the date. */
+/* ═══ FORECAST ═══ */
 const SCOPES = [
-  { id:'day',   label:'Day'   }, { id:'week', label:'Week' },
-  { id:'month', label:'Month' }, { id:'year', label:'Year' },
+  { id:'month', label:'Month' }, { id:'day', label:'Day' },
+  { id:'week',  label:'Week'  }, { id:'year', label:'Year' },
 ];
-const pad2 = n => String(n).padStart(2, '0');
-const dateValue = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`;
-const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
-/* Same 7-day blocks from 1 January the server counts in. */
-const weekOfYear = (m, d) =>
-  Math.min(52, Math.ceil(([0,31,59,90,120,151,181,212,243,273,304,334][m-1] + d) / 7));
 
 async function initForecast() {
-  const meta = await fetch(`${API}/ml-meta`).then(r => r.json()).catch(() => ({}));
-  const input = document.getElementById('fcDate');
-  if (meta.coverage) { input.min = meta.coverage.from; input.max = meta.coverage.to; }
+  const now = new Date();
+  state.years = [now.getFullYear(), now.getFullYear()+1, now.getFullYear()+2];
+  document.getElementById('yearSeg').innerHTML = state.years
+    .map((y,i) => `<button data-i="${i}">${y}</button>`).join('');
   document.getElementById('scopeSeg').innerHTML = SCOPES
     .map(s => `<button data-s="${s.id}">${s.label}</button>`).join('');
-  document.querySelectorAll('#scopeSeg button').forEach(b => b.addEventListener('click', () => {
-    state.scope = b.dataset.s;
-    renderForecast();
+  document.querySelectorAll('#yearSeg button').forEach(b => b.addEventListener('click', () => {
+    state.yearIdx = +b.dataset.i; loadForecastYear();
   }));
-  input.addEventListener('change', () => pickDate(input.value));
-  document.getElementById('fcClear').addEventListener('click', () => { input.value = ''; pickDate(''); });
-  renderForecast();                       // the empty state, until a date is chosen
-}
-
-async function pickDate(value) {
-  if (!value) { state.date = null; renderForecast(); return; }
-  const [y, m, d] = value.split('-').map(Number);
-  if (!y || !m || !d) return;
-  state.date = { y, m, d };
-  document.getElementById('fcDate').value = value;
-  if (state.forecastYear !== y) await loadForecastYear(y);
-  else renderForecast();
-}
-
-async function loadForecastYear(yr) {
-  const rows = await fetch(`${API}/ml-forecast/${yr}`).then(r => r.json()).catch(() => []);
-  if (!state.date || state.date.y !== yr) return;     // the date moved on while this loaded
-  state.monthly = rows.map(r => r.predicted);
-  state.monthlyRows = rows;               // each carries its own measured range
-  state.forecastYear = yr;
-  renderForecast();
+  document.querySelectorAll('#scopeSeg button').forEach(b => b.addEventListener('click', () => {
+    state.scope = b.dataset.s; renderForecast();
+  }));
+  await loadForecastYear();
 }
 
 function syncSegs() {
+  document.querySelectorAll('#yearSeg button').forEach(b =>
+    b.classList.toggle('on', +b.dataset.i === state.yearIdx));
   document.querySelectorAll('#scopeSeg button').forEach(b =>
     b.classList.toggle('on', b.dataset.s === state.scope));
 }
 
-/* Renders can overlap — a theme change and a date change both call this, and
-   each awaits the server. Only the newest may touch the page. */
-let fcRender = 0;
+async function loadForecastYear() {
+  const yr = state.years[state.yearIdx];
+  const rows = await fetch(`${API}/ml-forecast/${yr}`).then(r => r.json()).catch(() => []);
+  state.monthly = rows.map(r => r.predicted);
+  state.monthlyRows = rows;            // each carries its own measured range
+  renderForecast();
+}
+
+/* One scrubber, four meanings, so Day / Week / Year all keep working. */
+function scrubItems() {
+  const yr = state.years[state.yearIdx];
+  if (state.scope === 'month')
+    return MONTHS_S.map((label,i) => ({ label, value: state.monthly?.[i] ?? 0, i }));
+  if (state.scope === 'year')
+    return [{ label: String(yr), value: Math.round((state.monthly||[]).reduce((a,b)=>a+b,0)/12), i:0 }];
+  if (state.scope === 'week')
+    return Array.from({length:52}, (_,i) => ({ label: i%4===0 ? `W${i+1}` : '', value:0, i }));
+  const days = new Date(yr, state.month+1, 0).getDate();
+  return Array.from({length:days}, (_,i) => ({ label: (i+1)%5===0||i===0 ? String(i+1) : '', value:0, i }));
+}
 
 async function renderForecast() {
-  const mine = ++fcRender;
+  if (!state.monthly) return;
   syncSegs();
-  const panel = document.getElementById('fcPanel');
-  const chosen = state.date;
-  document.getElementById('fcEmpty').classList.toggle('hidden', !!chosen);
-  document.getElementById('fcResult').classList.toggle('hidden', !chosen);
-  document.getElementById('fcClear').classList.toggle('hidden', !chosen);
+  const yr = state.years[state.yearIdx];
+  const items = scrubItems();
+  if (state.scrubSel === undefined || state.scrubSel >= items.length) state.scrubSel = 0;
+  if (state.scope === 'month') state.scrubSel = Math.min(state.scrubSel, 11);
 
-  if (!chosen) {
-    panel.style.background = token('--field');
-    panel.style.borderColor = token('--line');
-    document.getElementById('scrubRow').innerHTML = '';
-    document.getElementById('scrubLabels').innerHTML = '';
-    document.getElementById('scrubHint').textContent =
-      'Any date from ' + (document.getElementById('fcDate').min || '2025').slice(0, 4)
-      + ' to ' + (document.getElementById('fcDate').max || '2035').slice(0, 4) + '.';
-    document.getElementById('fcNote').textContent =
-      'Pick a date, then choose whether you want that day, its week, its month or the whole year.';
-    document.getElementById('yearGridTitle').textContent = 'Full Year Outlook';
-    document.getElementById('yearGrid').innerHTML =
-      `<p class="fc-empty" style="grid-column:1/-1;padding:12px 4px">Pick a date to see its year.</p>`;
-    return;
-  }
-
-  const { y, m, d } = chosen;
-  const when = new Date(y, m - 1, d);
+  /* Day / week values come from the server so the day factors apply. */
   let value, heading, lo, hi, row = null;
   if (state.scope === 'month') {
-    row = (state.monthlyRows || [])[m - 1] || {};
-    value = row.predicted; lo = row.ciLower; hi = row.ciUpper;
-    heading = `${MONTHS[m - 1]} ${y}`;
+    row = (state.monthlyRows || [])[state.scrubSel] || {};
+    value = items[state.scrubSel].value;
+    lo = row.ciLower; hi = row.ciUpper;
+    heading = `${MONTHS[state.scrubSel]} ${yr}`;
   } else {
-    const body = state.scope === 'day'  ? { type:'day', month:m, day:d, targetYear:y }
-               : state.scope === 'week' ? { type:'week', week: weekOfYear(m, d), targetYear:y }
-               :                          { type:'year', targetYear:y };
+    const body = state.scope === 'day'  ? { type:'day', month: state.month+1, day: state.scrubSel+1, targetYear: yr }
+               : state.scope === 'week' ? { type:'week', week: state.scrubSel+1, targetYear: yr }
+               :                          { type:'year', targetYear: yr };
     const r = await fetch(`${API}/predict-ml`, { method:'POST',
-      headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(x => x.json());
-    if (mine !== fcRender) return;                    // a newer render has taken over
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(x=>x.json());
     value = r.predicted; lo = r.ciLower; hi = r.ciUpper; row = r;
-    heading = state.scope === 'day'
-        ? when.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
-      : state.scope === 'week' ? `Week ${weekOfYear(m, d)} of ${y} · around ${MONTHS[m-1]} ${d}`
-      :                          `Annual average · ${y}`;
+    heading = state.scope === 'day'  ? `${MONTHS[state.month]} ${state.scrubSel+1}, ${yr}`
+            : state.scope === 'week' ? `Week ${state.scrubSel+1} of ${yr}`
+            :                          `Annual average · ${yr}`;
   }
-  if (value == null) return;
 
   const b = band(value);
+  const panel = document.getElementById('fcPanel');
   panel.style.background = b.bg; panel.style.borderColor = b.line;
   document.getElementById('fcHeading').textContent = heading;
   const num = document.getElementById('fcNum'); num.textContent = value; num.style.color = b.color;
@@ -399,30 +371,36 @@ async function renderForecast() {
   document.getElementById('ciLo').textContent = lo;
   document.getElementById('ciHi').textContent = hi;
 
-  /* The bars are the chosen year, month by month — a way to move the date, not
-     a second answer: tapping one keeps the day and changes the month. */
-  const months = state.monthly || [];
-  const peak = Math.max(...months, 1);
-  document.getElementById('scrubRow').innerHTML = months.map((v, i) => {
-    const sb = band(v), h = Math.round(12 + (v/peak)*108);
-    return `<button class="scrub-col ${i === m-1 ? 'on' : ''}" data-i="${i}" aria-label="${MONTHS[i]} ${y}">
-      <span class="bar" style="height:${h}px;border-color:${sb.color};background:${sb.line}"></span></button>`;
+  /* outlined bars, as on the Stitch analytics screen */
+  const peak = Math.max(...items.map(x => x.value), 1);
+  document.getElementById('scrubRow').innerHTML = items.map((it,i) => {
+    const v = it.value || 0;
+    const h = v ? Math.round(12 + (v/peak)*108) : 18;
+    const sb = v ? band(v) : null;
+    const style = sb ? `height:${h}px;border-color:${sb.color};background:${sb.line}`
+                     : `height:${h}px;border-color:${token('--line-strong')};background:${token('--field')}`;
+    return `<button class="scrub-col ${i===state.scrubSel?'on':''}" data-i="${i}" aria-label="${it.label||i+1}">
+      <span class="bar" style="${style}"></span></button>`;
   }).join('');
-  document.getElementById('scrubLabels').innerHTML = MONTHS_S
-    .map((label, i) => `<span class="${i === m-1 ? 'on' : ''}">${label}</span>`).join('');
+  document.getElementById('scrubLabels').innerHTML = items
+    .map((it,i) => `<span class="${i===state.scrubSel?'on':''}">${it.label}</span>`).join('');
   document.querySelectorAll('.scrub-col').forEach(btn => btn.addEventListener('click', () => {
-    const mm = +btn.dataset.i + 1;
-    pickDate(dateValue(y, mm, Math.min(d, daysInMonth(y, mm))));
+    state.scrubSel = +btn.dataset.i; renderForecast();
   }));
-  document.getElementById('scrubHint').textContent =
-    `Bars are ${y} month by month — tap one to move the date, or use the calendar above.`;
 
-  const about = (m === 11)
+  document.getElementById('scrubHint').textContent = {
+    month:'Tap a month to read it. Bars are the modelled monthly mean.',
+    day:`Tap a day in ${MONTHS[state.month]}. Bars show the month, not the day.`,
+    week:'Tap a week of the year.',
+    year:'The mean of all twelve modelled months.',
+  }[state.scope];
+
+  const about = (state.scope === 'month' && state.scrubSel === 10)
     ? 'November is the worst month of the Delhi year, every year on record here — roughly four times August.'
     : 'Modelled from the seasonal shape of the last five complete years, held against a flat level trend.';
   const ytd = row && row.yearSoFar;
   const ytdNote = ytd
-    ? ` Adjusted ${ytd.adjustmentPct >= 0 ? '+' : ''}${ytd.adjustmentPct}% for how ${y} has run so far `
+    ? ` Adjusted ${ytd.adjustmentPct >= 0 ? '+' : ''}${ytd.adjustmentPct}% for how ${yr} has run so far `
       + `(January–${MONTHS[ytd.throughMonth - 1]} measured).`
     : '';
   const rangeNote = (row && row.source === 'observed')
@@ -433,21 +411,19 @@ async function renderForecast() {
   renderYearGrid();
 }
 
-/* The Stitch "Full Year Outlook" tiles — tapping one moves the date. */
+/* The Stitch "Full Year Outlook" tiles — tapping one reads that month. */
 function renderYearGrid() {
-  const y = state.forecastYear, sel = state.date;
-  document.getElementById('yearGridTitle').textContent = `Full Year Outlook · ${y}`;
+  const yr = state.years[state.yearIdx];
+  document.getElementById('yearGridTitle').textContent = `Full Year Outlook · ${yr}`;
   document.getElementById('yearGrid').innerHTML = (state.monthly || []).map((v, i) => {
     const b = band(v);
-    const on = sel && state.scope === 'month' && sel.m === i + 1;
+    const on = state.scope === 'month' && state.scrubSel === i;
     return `<button class="mtile ${on?'on':''}" data-i="${i}"
         style="background:${b.bg};border-color:${b.line};color:${b.ink}">
       <small>${MONTHS_S[i]}</small><b class="num">${v}</b><i>${b.label}</i></button>`;
   }).join('');
   document.querySelectorAll('.mtile').forEach(t => t.addEventListener('click', () => {
-    const mm = +t.dataset.i + 1;
-    state.scope = 'month';
-    pickDate(dateValue(y, mm, Math.min(sel ? sel.d : 1, daysInMonth(y, mm))));
+    state.scope = 'month'; state.scrubSel = +t.dataset.i; renderForecast();
   }));
 }
 
