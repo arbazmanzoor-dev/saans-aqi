@@ -16,6 +16,7 @@
 /* ── Stitch "Saans AQI" system: Inter, emerald primary pair for the header
       gradient, slate neutrals, CPCB bands with -50 / -100 / -800 tints ── */
 :root{
+  color-scheme:light;          /* native controls (the date picker) follow the theme */
   --bg:#F8FAFC; --card:#FFFFFF; --track:#F2F3FF; --field:#F1F5F9;
   --ink:#0F172A; --ink2:#334155; --muted:#64748B; --faint:#94A3B8; --outline:#6D7A72;
   --line:#E2E8F0; --line-soft:#F1F5F9; --line-strong:#CBD5E1;
@@ -32,6 +33,7 @@
   --severe:#701A75;   --severe-bg:#FDF4FF;   --severe-line:#FAE8FF;   --severe-ink:#701A75;
 }
 [data-theme="dark"]{
+  color-scheme:dark;
   --bg:#0F172A; --card:#1E293B; --track:#0F172A; --field:#0F172A;
   --ink:#F1F5F9; --ink2:#CBD5E1; --muted:#94A3B8; --faint:#64748B; --outline:#94A3B8;
   --line:#334155; --line-soft:#273449; --line-strong:#475569;
@@ -259,6 +261,14 @@ body{
 .tmr-dial span{font-size:9.5px;font-weight:700;letter-spacing:.08em;opacity:.9;margin-top:2px}
 .tmr-vs{font-size:13px;font-weight:700}
 
+/* ── forecast picker ── */
+.fc-pick{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fc-label{font-size:12.5px;font-weight:600;color:var(--ink2);flex:none}
+.fc-date{flex-grow:1;min-width:150px;cursor:pointer}
+.fc-clear{padding:9px 14px;font-size:12.5px;background:var(--field);color:var(--ink2);box-shadow:none}
+.fc-clear:hover{background:var(--line-soft);color:var(--ink)}
+.fc-empty{font-size:13.5px;line-height:1.55;color:var(--muted);padding:26px 8px}
+
 /* ── ward map ── */
 .map-grid{grid-template-columns:minmax(0,1.9fr) minmax(0,1fr)}
 .map-side{display:flex;flex-direction:column;gap:16px}
@@ -420,18 +430,25 @@ body{
     <div class="g2">
       <div class="card">
         <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">online_prediction</span></span>Predict AQI</div>
-        <div class="seg" id="scopeSeg"></div>
-        <div class="seg" id="yearSeg" style="margin-top:8px"></div>
+        <div class="fc-pick">
+          <label class="fc-label" for="fcDate">Pick a date</label>
+          <input class="input fc-date" type="date" id="fcDate">
+          <button class="btn fc-clear hidden" id="fcClear" type="button">Clear</button>
+        </div>
+        <div class="seg" id="scopeSeg" style="margin-top:10px"></div>
         <div class="panel" id="fcPanel">
-          <div class="eyebrow" id="fcHeading">&mdash;</div>
-          <div class="fc-num num" id="fcNum">&mdash;</div>
-          <div class="fc-band" id="fcBand">&mdash;</div>
-          <div class="ci">
-            <div class="ci-track">
-              <div class="ci-span" id="ciSpan"></div>
-              <div class="ci-mid" id="ciMid"></div>
+          <p class="fc-empty" id="fcEmpty">Choose a date above to see its forecast.</p>
+          <div id="fcResult" class="hidden">
+            <div class="eyebrow" id="fcHeading">&mdash;</div>
+            <div class="fc-num num" id="fcNum">&mdash;</div>
+            <div class="fc-band" id="fcBand">&mdash;</div>
+            <div class="ci">
+              <div class="ci-track">
+                <div class="ci-span" id="ciSpan"></div>
+                <div class="ci-mid" id="ciMid"></div>
+              </div>
+              <div class="ci-labels"><span id="ciLo">&mdash;</span><span>likely range</span><span id="ciHi">&mdash;</span></div>
             </div>
-            <div class="ci-labels"><span id="ciLo">&mdash;</span><span>likely range</span><span id="ciHi">&mdash;</span></div>
           </div>
         </div>
         <div class="scrub-row" id="scrubRow"></div>

@@ -916,6 +916,15 @@ app.get('/api/ml-meta', (req,res) => {
     training_records: ML_META.training_records || 0,
     generated: ML_META.generated || null,
     total_lookup: Object.keys(ML_LOOKUP).length,
+    // what the date picker may offer: the months the lookup actually covers
+    coverage: (() => {
+      const keys = Object.keys(ML_LOOKUP).map(k => k.split('_').map(Number))
+        .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      if (!keys.length) return null;
+      const [fy, fm] = keys[0], [ly, lm] = keys[keys.length - 1];
+      return { from: `${fy}-${String(fm).padStart(2, '0')}-01`,
+               to:   `${ly}-${String(lm).padStart(2, '0')}-${DAYS_IN_MONTH(ly, lm)}` };
+    })(),
     ranges: { method: 'walk-forward log error, 95% (±1.96 sd), shrunk toward pooled',
               testYears: rangeModel.testYears, year: +rangeModel.year.toFixed(3),
               month: Object.fromEntries(Object.entries(rangeModel.month).map(([k, v]) => [k, +v.toFixed(3)])),
