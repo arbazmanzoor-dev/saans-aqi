@@ -261,6 +261,10 @@ body{
 .tmr-dial span{font-size:9.5px;font-weight:700;letter-spacing:.08em;opacity:.9;margin-top:2px}
 .tmr-vs{font-size:13px;font-weight:700}
 
+/* ── forecast: the day / week picker ── */
+.fc-when{display:flex;gap:8px;margin-top:8px}
+.fc-when .sel-wrap{flex:1}
+
 /* ── ward map ── */
 .map-grid{grid-template-columns:minmax(0,1.9fr) minmax(0,1fr)}
 .map-side{display:flex;flex-direction:column;gap:16px}
@@ -424,6 +428,7 @@ body{
         <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">online_prediction</span></span>Predict AQI</div>
         <div class="seg" id="scopeSeg"></div>
         <div class="seg" id="yearSeg" style="margin-top:8px"></div>
+        <div class="fc-when hidden" id="fcWhen"></div>
         <div class="panel" id="fcPanel">
           <div class="eyebrow" id="fcHeading">&mdash;</div>
           <div class="fc-num num" id="fcNum">&mdash;</div>
@@ -436,10 +441,6 @@ body{
             <div class="ci-labels"><span id="ciLo">&mdash;</span><span>likely range</span><span id="ciHi">&mdash;</span></div>
           </div>
         </div>
-        <div class="scrub-row" id="scrubRow"></div>
-        <div class="scrub-lbls" id="scrubLabels"></div>
-        <p class="hint" id="scrubHint">&mdash;</p>
-        <p class="note" id="fcNote">&mdash;</p>
       </div>
 
       <div class="card">

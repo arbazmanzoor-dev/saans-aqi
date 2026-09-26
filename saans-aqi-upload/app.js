@@ -92,7 +92,7 @@ function healthWarnings(aqi) {
 }
 
 const state = { page:'today', week:[], weekSel:0, live:null, anchor:null, stats:null,
-                scope:'month', month:new Date().getMonth(), yearIdx:0, years:[], monthly:null,
+                scope:'month', fcMonth:0, fcDay:1, fcWeek:1, yearIdx:0, years:[], monthly:null,
                 lang:'en' };
 
 /* ═══ THEME ═══ */
@@ -276,15 +276,21 @@ async function initAlerts() {
   });
 }
 
-/* ═══ FORECAST ═══ */
+/* ═══ FORECAST ═══
+   Scope says what you are asking about; Day and Week bring their own small
+   pickers, and the Full Year Outlook tiles choose the month. */
 const SCOPES = [
   { id:'month', label:'Month' }, { id:'day', label:'Day' },
   { id:'week',  label:'Week'  }, { id:'year', label:'Year' },
 ];
+const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
 
 async function initForecast() {
   const now = new Date();
   state.years = [now.getFullYear(), now.getFullYear()+1, now.getFullYear()+2];
+  state.fcMonth = now.getMonth();
+  state.fcDay = Math.min(now.getDate(), daysInMonth(state.years[0], state.fcMonth));
+  state.fcWeek = 1;
   document.getElementById('yearSeg').innerHTML = state.years
     .map((y,i) => `<button data-i="${i}">${y}</button>`).join('');
   document.getElementById('scopeSeg').innerHTML = SCOPES
@@ -313,45 +319,59 @@ async function loadForecastYear() {
   renderForecast();
 }
 
-/* One scrubber, four meanings, so Day / Week / Year all keep working. */
-function scrubItems() {
+/* Day needs a month and a day; Week needs a week. Nothing otherwise. */
+function renderWhen() {
+  const box = document.getElementById('fcWhen');
   const yr = state.years[state.yearIdx];
-  if (state.scope === 'month')
-    return MONTHS_S.map((label,i) => ({ label, value: state.monthly?.[i] ?? 0, i }));
-  if (state.scope === 'year')
-    return [{ label: String(yr), value: Math.round((state.monthly||[]).reduce((a,b)=>a+b,0)/12), i:0 }];
-  if (state.scope === 'week')
-    return Array.from({length:52}, (_,i) => ({ label: i%4===0 ? `W${i+1}` : '', value:0, i }));
-  const days = new Date(yr, state.month+1, 0).getDate();
-  return Array.from({length:days}, (_,i) => ({ label: (i+1)%5===0||i===0 ? String(i+1) : '', value:0, i }));
+  if (state.scope !== 'day' && state.scope !== 'week') { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const sel = (id, options) =>
+    `<div class="sel-wrap"><select class="select" id="${id}">${options}</select></div>`;
+  if (state.scope === 'day') {
+    state.fcDay = Math.min(state.fcDay, daysInMonth(yr, state.fcMonth));
+    box.innerHTML =
+      sel('fcMonthSel', MONTHS.map((m,i) => `<option value="${i}" ${i===state.fcMonth?'selected':''}>${m}</option>`).join(''))
+      + sel('fcDaySel', Array.from({length: daysInMonth(yr, state.fcMonth)}, (_,i) =>
+          `<option value="${i+1}" ${i+1===state.fcDay?'selected':''}>${i+1}</option>`).join(''));
+    document.getElementById('fcMonthSel').addEventListener('change', e => {
+      state.fcMonth = +e.target.value; renderForecast();
+    });
+    document.getElementById('fcDaySel').addEventListener('change', e => {
+      state.fcDay = +e.target.value; renderForecast();
+    });
+  } else {
+    box.innerHTML = sel('fcWeekSel', Array.from({length:52}, (_,i) =>
+      `<option value="${i+1}" ${i+1===state.fcWeek?'selected':''}>Week ${i+1}</option>`).join(''));
+    document.getElementById('fcWeekSel').addEventListener('change', e => {
+      state.fcWeek = +e.target.value; renderForecast();
+    });
+  }
+  box.classList.remove('hidden');
 }
 
 async function renderForecast() {
   if (!state.monthly) return;
   syncSegs();
+  renderWhen();
   const yr = state.years[state.yearIdx];
-  const items = scrubItems();
-  if (state.scrubSel === undefined || state.scrubSel >= items.length) state.scrubSel = 0;
-  if (state.scope === 'month') state.scrubSel = Math.min(state.scrubSel, 11);
 
   /* Day / week values come from the server so the day factors apply. */
-  let value, heading, lo, hi, row = null;
+  let value, heading, lo, hi;
   if (state.scope === 'month') {
-    row = (state.monthlyRows || [])[state.scrubSel] || {};
-    value = items[state.scrubSel].value;
-    lo = row.ciLower; hi = row.ciUpper;
-    heading = `${MONTHS[state.scrubSel]} ${yr}`;
+    const row = (state.monthlyRows || [])[state.fcMonth] || {};
+    value = row.predicted; lo = row.ciLower; hi = row.ciUpper;
+    heading = `${MONTHS[state.fcMonth]} ${yr}`;
   } else {
-    const body = state.scope === 'day'  ? { type:'day', month: state.month+1, day: state.scrubSel+1, targetYear: yr }
-               : state.scope === 'week' ? { type:'week', week: state.scrubSel+1, targetYear: yr }
+    const body = state.scope === 'day'  ? { type:'day', month: state.fcMonth+1, day: state.fcDay, targetYear: yr }
+               : state.scope === 'week' ? { type:'week', week: state.fcWeek, targetYear: yr }
                :                          { type:'year', targetYear: yr };
     const r = await fetch(`${API}/predict-ml`, { method:'POST',
       headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(x=>x.json());
-    value = r.predicted; lo = r.ciLower; hi = r.ciUpper; row = r;
-    heading = state.scope === 'day'  ? `${MONTHS[state.month]} ${state.scrubSel+1}, ${yr}`
-            : state.scope === 'week' ? `Week ${state.scrubSel+1} of ${yr}`
+    value = r.predicted; lo = r.ciLower; hi = r.ciUpper;
+    heading = state.scope === 'day'  ? `${MONTHS[state.fcMonth]} ${state.fcDay}, ${yr}`
+            : state.scope === 'week' ? `Week ${state.fcWeek} of ${yr}`
             :                          `Annual average · ${yr}`;
   }
+  if (value == null) return;
 
   const b = band(value);
   const panel = document.getElementById('fcPanel');
@@ -371,43 +391,6 @@ async function renderForecast() {
   document.getElementById('ciLo').textContent = lo;
   document.getElementById('ciHi').textContent = hi;
 
-  /* outlined bars, as on the Stitch analytics screen */
-  const peak = Math.max(...items.map(x => x.value), 1);
-  document.getElementById('scrubRow').innerHTML = items.map((it,i) => {
-    const v = it.value || 0;
-    const h = v ? Math.round(12 + (v/peak)*108) : 18;
-    const sb = v ? band(v) : null;
-    const style = sb ? `height:${h}px;border-color:${sb.color};background:${sb.line}`
-                     : `height:${h}px;border-color:${token('--line-strong')};background:${token('--field')}`;
-    return `<button class="scrub-col ${i===state.scrubSel?'on':''}" data-i="${i}" aria-label="${it.label||i+1}">
-      <span class="bar" style="${style}"></span></button>`;
-  }).join('');
-  document.getElementById('scrubLabels').innerHTML = items
-    .map((it,i) => `<span class="${i===state.scrubSel?'on':''}">${it.label}</span>`).join('');
-  document.querySelectorAll('.scrub-col').forEach(btn => btn.addEventListener('click', () => {
-    state.scrubSel = +btn.dataset.i; renderForecast();
-  }));
-
-  document.getElementById('scrubHint').textContent = {
-    month:'Tap a month to read it. Bars are the modelled monthly mean.',
-    day:`Tap a day in ${MONTHS[state.month]}. Bars show the month, not the day.`,
-    week:'Tap a week of the year.',
-    year:'The mean of all twelve modelled months.',
-  }[state.scope];
-
-  const about = (state.scope === 'month' && state.scrubSel === 10)
-    ? 'November is the worst month of the Delhi year, every year on record here — roughly four times August.'
-    : 'Modelled from the seasonal shape of the last five complete years, held against a flat level trend.';
-  const ytd = row && row.yearSoFar;
-  const ytdNote = ytd
-    ? ` Adjusted ${ytd.adjustmentPct >= 0 ? '+' : ''}${ytd.adjustmentPct}% for how ${yr} has run so far `
-      + `(January–${MONTHS[ytd.throughMonth - 1]} measured).`
-    : '';
-  const rangeNote = (row && row.source === 'observed')
-    ? ' This month has already been measured.'
-    : ' The range is where 95% of past forecasts like this one landed.';
-  document.getElementById('fcNote').textContent = about + ytdNote + rangeNote;
-
   renderYearGrid();
 }
 
@@ -417,13 +400,15 @@ function renderYearGrid() {
   document.getElementById('yearGridTitle').textContent = `Full Year Outlook · ${yr}`;
   document.getElementById('yearGrid').innerHTML = (state.monthly || []).map((v, i) => {
     const b = band(v);
-    const on = state.scope === 'month' && state.scrubSel === i;
+    const on = state.scope !== 'year' && state.fcMonth === i;
     return `<button class="mtile ${on?'on':''}" data-i="${i}"
         style="background:${b.bg};border-color:${b.line};color:${b.ink}">
       <small>${MONTHS_S[i]}</small><b class="num">${v}</b><i>${b.label}</i></button>`;
   }).join('');
   document.querySelectorAll('.mtile').forEach(t => t.addEventListener('click', () => {
-    state.scope = 'month'; state.scrubSel = +t.dataset.i; renderForecast();
+    state.fcMonth = +t.dataset.i;
+    if (state.scope === 'year' || state.scope === 'week') state.scope = 'month';
+    renderForecast();
   }));
 }
 
