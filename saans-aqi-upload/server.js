@@ -593,22 +593,30 @@ const testStations = () => TEST_SITES.map(([name, lat, lon, k]) => ({
 if (TEST_AQI) console.log(`🧪 TEST MODE — SAANS_TEST_AQI=${TEST_AQI}. Readings are INVENTED, `
   + 'flagged test:true, and cannot trigger an alert. Unset the variable for real behaviour.');
 
+/* CPCB's Delhi stations as WAQI numbers them. Named slugs rot — delhi/r-k-puram
+   and delhi/dwarka-sector-8 both answered "Unknown station" by Oct 2026 — while
+   the uids kept working, so the uids are what we ask for. Checked 4 Oct 2026.
+   The US Embassy site (@7024) is left out: it stopped reporting in 2025. */
 const DELHI_STATIONS = [
-  'delhi/anand-vihar','delhi/ito','delhi/dwarka-sector-8',
-  'delhi/punjabi-bagh','delhi/r-k-puram','delhi/mandir-marg',
+  '@2553','@2554','@2556','@10111','@10112','@10113','@10114',
+  '@10115','@10118','@10121','@10124','@10704','@10705',
 ];
 let rtCache = null, rtCacheTime = 0;
 const RT_CACHE_MS = 30*60*1000;
+const WAQI_STALE_MS = 3*3600*1000;   // past this a reading is history, not "now"
+const WAQI_MIN      = 3;             // fresh stations before it counts as a city reading
 
 // Derived from the loaded sheets so it can never drift from the data again.
 const MONTH_AVGS = Object.fromEntries(
   Object.entries(monthlyStats).map(([m,st]) => [m, st.mean]));
 
-function buildFallback() {
+function buildFallback(note) {
   const m = new Date().getMonth()+1;
+  const why = note ? ` — ${note}`
+            : WAQI_TOKEN === 'demo' ? ' (set WAQI_TOKEN env var for live data)' : '';
   return { success:false, fallback:true, aqi:Math.round(MONTH_AVGS[m]||187),
     stations:[], count:0, updated:new Date().toISOString(),
-    source:'Historical average for this month (set WAQI_TOKEN env var for live data)' };
+    source:`Historical average for this month${why}` };
 }
 
 async function fetchStations() {
@@ -649,14 +657,41 @@ async function fetchStations() {
         } catch(e) { clearTimeout(timer); throw e; }
       })
     );
-    const valid = results
+    /* WAQI relays CPCB, so when CPCB's pipeline stalls its Delhi stations keep
+       serving yesterday's number behind a cheerful HTTP 200 — on 4 Oct 2026, 13
+       of 14 were 26 to 33 hours behind, one of them 3.5 months. Averaging those
+       would publish a day-old number as Delhi's air now, and hand it to the
+       next-day model as today's anchor. So each reading is judged on its own
+       timestamp, and too few fresh ones means no live reading at all rather
+       than a confident wrong one. */
+    const now = Date.now();
+    const seen = results
       .filter(r=>r.status==='fulfilled'&&r.value?.status==='ok')
-      .map(r=>({ station:r.value.data.city?.name||'Delhi', aqi:parseInt(r.value.data.aqi) }))
+      .map(r => {
+        const d = r.value.data, obs = Date.parse(d.time?.iso || '');
+        return { station:(d.city?.name||'Delhi').replace(/,\s*India$/,''),
+                 aqi:parseInt(d.aqi), observed:d.time?.iso || null,
+                 age: Number.isFinite(obs) ? now - obs : Infinity };
+      })
       .filter(r=>!isNaN(r.aqi)&&r.aqi>0);
-    if (!valid.length) return buildFallback();
-    const avgAqi = Math.round(valid.reduce((s,r)=>s+r.aqi,0)/valid.length);
-    rtCache = { success:true, aqi:avgAqi, stations:valid, count:valid.length,
-      updated:new Date().toISOString(), source:'WAQI API',
+    const fresh = seen.filter(r => r.age <= WAQI_STALE_MS);
+    if (fresh.length < WAQI_MIN) {
+      const hrs = seen.length ? Math.round(Math.min(...seen.map(r=>r.age))/3600000) : 0;
+      /* Two different faults, said differently: nothing current (CPCB is behind),
+         or a couple current but too few to call an average a city reading. */
+      return buildFallback(
+        !seen.length    ? 'no WAQI station answered'
+        : !fresh.length ? `all ${seen.length} WAQI stations are behind, the freshest by ${hrs}h, `
+                        + "so CPCB's feed has stalled"
+        : `only ${fresh.length} of ${seen.length} WAQI stations are current, `
+          + `fewer than the ${WAQI_MIN} a city average needs`);
+    }
+    const avgAqi = Math.round(fresh.reduce((s,r)=>s+r.aqi,0)/fresh.length);
+    rtCache = { success:true, aqi:avgAqi,
+      stations: fresh.map(({station,aqi,observed})=>({station,aqi,observed})),
+      count: fresh.length,
+      updated: new Date(now - Math.min(...fresh.map(r=>r.age))).toISOString(),
+      source: `live · ${fresh.length} WAQI station${fresh.length===1?'':'s'} (CPCB, relayed by aqicn.org)`,
       band: (v => (BANDS.find(([max]) => v <= max) || BANDS[5])[1])(avgAqi) };
     rtCacheTime = Date.now();
     return rtCache;
