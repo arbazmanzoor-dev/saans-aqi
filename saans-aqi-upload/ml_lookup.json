@@ -1726,5 +1726,338 @@
   "years_used": 6
  },
  "history_note": "2015-2019 from data/delhi_daily_2015_2020.csv (city_day table compiled from CPCB station data); 2020-2025 from the CPCB workbooks.",
- "generated": "2026-09-15"
+ "generated": "2026-10-04",
+ "backtest": {
+  "months": {
+   "2020_1": {
+    "predicted": 304,
+    "actual": 285.7,
+    "climatology": 301
+   },
+   "2020_2": {
+    "predicted": 249,
+    "actual": 245.0,
+    "climatology": 249
+   },
+   "2020_3": {
+    "predicted": 196,
+    "actual": 128.2,
+    "climatology": 195
+   },
+   "2020_4": {
+    "predicted": 222,
+    "actual": 109.7,
+    "climatology": 223
+   },
+   "2020_5": {
+    "predicted": 226,
+    "actual": 143.7,
+    "climatology": 227
+   },
+   "2020_6": {
+    "predicted": 173,
+    "actual": 123.3,
+    "climatology": 172
+   },
+   "2020_7": {
+    "predicted": 110,
+    "actual": 83.8,
+    "climatology": 110
+   },
+   "2020_8": {
+    "predicted": 103,
+    "actual": 63.9,
+    "climatology": 104
+   },
+   "2020_9": {
+    "predicted": 121,
+    "actual": 118.7,
+    "climatology": 124
+   },
+   "2020_10": {
+    "predicted": 250,
+    "actual": 265.4,
+    "climatology": 251
+   },
+   "2020_11": {
+    "predicted": 326,
+    "actual": 327.9,
+    "climatology": 325
+   },
+   "2020_12": {
+    "predicted": 305,
+    "actual": 331.9,
+    "climatology": 302
+   },
+   "2021_1": {
+    "predicted": 256,
+    "actual": 324.0,
+    "climatology": 255
+   },
+   "2021_2": {
+    "predicted": 208,
+    "actual": 287.8,
+    "climatology": 207
+   },
+   "2021_3": {
+    "predicted": 148,
+    "actual": 223.5,
+    "climatology": 151
+   },
+   "2021_4": {
+    "predicted": 161,
+    "actual": 201.8,
+    "climatology": 164
+   },
+   "2021_5": {
+    "predicted": 166,
+    "actual": 144.4,
+    "climatology": 169
+   },
+   "2021_6": {
+    "predicted": 132,
+    "actual": 147.3,
+    "climatology": 131
+   },
+   "2021_7": {
+    "predicted": 81,
+    "actual": 110.1,
+    "climatology": 81
+   },
+   "2021_8": {
+    "predicted": 70,
+    "actual": 106.7,
+    "climatology": 70
+   },
+   "2021_9": {
+    "predicted": 95,
+    "actual": 78.4,
+    "climatology": 96
+   },
+   "2021_10": {
+    "predicted": 214,
+    "actual": 173.2,
+    "climatology": 213
+   },
+   "2021_11": {
+    "predicted": 276,
+    "actual": 376.5,
+    "climatology": 275
+   },
+   "2021_12": {
+    "predicted": 266,
+    "actual": 336.0,
+    "climatology": 263
+   },
+   "2022_1": {
+    "predicted": 265,
+    "actual": 278.5,
+    "climatology": 263
+   },
+   "2022_2": {
+    "predicted": 224,
+    "actual": 224.8,
+    "climatology": 223
+   },
+   "2022_3": {
+    "predicted": 165,
+    "actual": 217.2,
+    "climatology": 165
+   },
+   "2022_4": {
+    "predicted": 164,
+    "actual": 255.4,
+    "climatology": 167
+   },
+   "2022_5": {
+    "predicted": 159,
+    "actual": 212.2,
+    "climatology": 165
+   },
+   "2022_6": {
+    "predicted": 130,
+    "actual": 190.0,
+    "climatology": 130
+   },
+   "2022_7": {
+    "predicted": 84,
+    "actual": 87.4,
+    "climatology": 82
+   },
+   "2022_8": {
+    "predicted": 73,
+    "actual": 93.4,
+    "climatology": 72
+   },
+   "2022_9": {
+    "predicted": 85,
+    "actual": 104.4,
+    "climatology": 85
+   },
+   "2022_10": {
+    "predicted": 197,
+    "actual": 210.2,
+    "climatology": 199
+   },
+   "2022_11": {
+    "predicted": 291,
+    "actual": 320.6,
+    "climatology": 289
+   },
+   "2022_12": {
+    "predicted": 279,
+    "actual": 319.2,
+    "climatology": 277
+   },
+   "2023_1": {
+    "predicted": 281,
+    "actual": 311.4,
+    "climatology": 282
+   },
+   "2023_2": {
+    "predicted": 231,
+    "actual": 237.4,
+    "climatology": 230
+   },
+   "2023_3": {
+    "predicted": 176,
+    "actual": 169.8,
+    "climatology": 175
+   },
+   "2023_4": {
+    "predicted": 182,
+    "actual": 179.6,
+    "climatology": 179
+   },
+   "2023_5": {
+    "predicted": 168,
+    "actual": 171.0,
+    "climatology": 169
+   },
+   "2023_6": {
+    "predicted": 153,
+    "actual": 129.8,
+    "climatology": 154
+   },
+   "2023_7": {
+    "predicted": 93,
+    "actual": 83.7,
+    "climatology": 94
+   },
+   "2023_8": {
+    "predicted": 85,
+    "actual": 116.5,
+    "climatology": 85
+   },
+   "2023_9": {
+    "predicted": 93,
+    "actual": 107.7,
+    "climatology": 94
+   },
+   "2023_10": {
+    "predicted": 209,
+    "actual": 217.8,
+    "climatology": 210
+   },
+   "2023_11": {
+    "predicted": 310,
+    "actual": 372.6,
+    "climatology": 309
+   },
+   "2023_12": {
+    "predicted": 307,
+    "actual": 348.0,
+    "climatology": 307
+   },
+   "2024_1": {
+    "predicted": 292,
+    "actual": 354.8,
+    "climatology": 292
+   },
+   "2024_2": {
+    "predicted": 234,
+    "actual": 217.6,
+    "climatology": 235
+   },
+   "2024_3": {
+    "predicted": 175,
+    "actual": 175.9,
+    "climatology": 174
+   },
+   "2024_4": {
+    "predicted": 181,
+    "actual": 183.4,
+    "climatology": 179
+   },
+   "2024_5": {
+    "predicted": 168,
+    "actual": 224.0,
+    "climatology": 168
+   },
+   "2024_6": {
+    "predicted": 146,
+    "actual": 179.1,
+    "climatology": 146
+   },
+   "2024_7": {
+    "predicted": 93,
+    "actual": 96.1,
+    "climatology": 94
+   },
+   "2024_8": {
+    "predicted": 91,
+    "actual": 72.2,
+    "climatology": 89
+   },
+   "2024_9": {
+    "predicted": 97,
+    "actual": 105.1,
+    "climatology": 97
+   },
+   "2024_10": {
+    "predicted": 209,
+    "actual": 234.0,
+    "climatology": 210
+   },
+   "2024_11": {
+    "predicted": 329,
+    "actual": 374.2,
+    "climatology": 329
+   },
+   "2024_12": {
+    "predicted": 317,
+    "actual": 293.8,
+    "climatology": 317
+   },
+   "2025_1": {
+    "predicted": 320,
+    "actual": 305.7,
+    "climatology": 319,
+    "part_year": true
+   },
+   "2025_2": {
+    "predicted": 247,
+    "actual": 214.3,
+    "climatology": 250,
+    "part_year": true
+   },
+   "2025_3": {
+    "predicted": 186,
+    "actual": 170.0,
+    "climatology": 187,
+    "part_year": true
+   }
+  },
+  "years_tested": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "part_year": [
+   2025
+  ],
+  "note": "Out-of-sample: each year was forecast from earlier years only, so these are the errors a reader would have seen at the time. Training years (before the first tested year) have no entry, because the model had already seen them and the error would flatter it."
+ }
 }

@@ -352,10 +352,17 @@ async function tomorrowAQI(reading) {
   if (!MODEL && !MET)
     return { available: false, reason: 'no_model',
              message: 'The next-day model has not been trained yet (npm run train:nextday).' };
+  /* Two reasons there may be no anchor, and they call for opposite advice:
+     nothing is configured (the reader can fix that), or the feeds are
+     configured and upstream is behind (the reader can only wait). The caller
+     passes `why` when it knows which. */
   if (!reading || !reading.live || !(reading.aqi > 0))
     return { available: false, reason: 'no_station_reading',
-             message: 'Tomorrow\'s forecast needs a live station reading. Set DATA_GOV_IN_KEY or WAQI_TOKEN and restart. '
-                    + 'Anchored on the keyless model estimate this forecast is weaker than the seasonal average, so it is not shown.' };
+             message: reading && reading.why
+               ? `Tomorrow's forecast needs a current station reading, and there isn't one: ${reading.why}. `
+                 + 'The keyless model estimate is a weaker anchor than the seasonal average, so tomorrow is not shown.'
+               : 'Tomorrow\'s forecast needs a live station reading. Set DATA_GOV_IN_KEY or WAQI_TOKEN and restart. '
+                 + 'Anchored on the keyless model estimate this forecast is weaker than the seasonal average, so it is not shown.' };
 
   if (cache && cache.anchor === reading.aqi && Date.now() - cacheTime < CACHE_MS) return cache.value;
 

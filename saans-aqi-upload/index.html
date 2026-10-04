@@ -205,6 +205,21 @@ body{
 .mtile b{font-size:22px;font-weight:800;line-height:1.15;margin-top:2px}
 .mtile i{font-style:normal;font-size:10.5px;font-weight:600;margin-top:1px}
 
+/* ── track record: what the model said, against what came ── */
+.bt-head,.bt-row{display:grid;grid-template-columns:5rem 1fr 1fr 5.4rem;gap:8px;align-items:baseline}
+.bt-head{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding-bottom:7px;border-bottom:1px solid var(--line);margin-top:12px}
+.bt-head span:nth-child(2),.bt-head span:nth-child(3),.bt-row .v{text-align:right}
+.bt-head span:last-child,.bt-row .e{text-align:right}
+.bt-row{padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.bt-row:last-child{border-bottom:0}
+.bt-row .m{font-weight:700;color:var(--ink2);white-space:nowrap}
+.bt-row .v{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.bt-row .e{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bt-row .e i{font-style:normal;font-weight:500;color:var(--muted);font-size:11.5px}
+.bt-row .part{font-size:9.5px;font-weight:700;color:var(--faint);margin-left:4px;vertical-align:1px}
+.bt-more{margin-top:12px;border:1px solid var(--line);background:var(--field);color:var(--ink2);padding:5px 12px;border-radius:999px;font:500 12.5px 'Inter',sans-serif;cursor:pointer}
+.bt-more:hover{border-color:var(--line-strong)}
+
 /* ── ask ── */
 .chat-bar{padding:14px}
 .lang-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -446,6 +461,15 @@ body{
       <div class="card">
         <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">calendar_month</span></span><span id="yearGridTitle">Full Year Outlook</span></div>
         <div class="year-grid" id="yearGrid"></div>
+      </div>
+
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">fact_check</span></span>Track record &mdash; what it said, against what came</div>
+        <p class="advice" id="btLead">&mdash;</p>
+        <div class="bt-head"><span>Month</span><span>Forecast</span><span>Actual</span><span>Off by</span></div>
+        <div id="btRows"></div>
+        <button class="bt-more hidden" id="btMore"></button>
+        <p class="note" id="btFoot">&mdash;</p>
       </div>
     </div>
   </div></section>

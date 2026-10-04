@@ -74,6 +74,6 @@
     "damping": 0.8,
     "years_used": 6
   },
-  "generated": "2026-09-15",
+  "generated": "2026-10-04",
   "note": "Walk-forward metrics: each year forecast from earlier years only. The previous file reported leave-one-out R2 0.8959 for a lag-based model trained on miscounted sheet data; both are superseded."
 }

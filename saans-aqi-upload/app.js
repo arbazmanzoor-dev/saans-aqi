@@ -302,6 +302,7 @@ async function initForecast() {
     state.scope = b.dataset.s; renderForecast();
   }));
   await loadForecastYear();
+  loadBacktest();
 }
 
 function syncSegs() {
@@ -392,6 +393,70 @@ async function renderForecast() {
   document.getElementById('ciHi').textContent = hi;
 
   renderYearGrid();
+}
+
+/* ═══ TRACK RECORD ═══
+   What the forecast said about a month before it happened, beside what the
+   month turned out to be. Only months the model had never seen: training holds
+   out each year and forecasts it from earlier years alone, so these are the
+   errors a reader would have met at the time, not a model marking its own
+   homework. Training years are absent for that reason. */
+const BT = { months: null, summary: null, note: null, all: false };
+
+async function loadBacktest() {
+  const d = await fetch(`${API}/backtest`).then(r => r.json()).catch(() => null);
+  if (!d || !(d.months || []).length) {
+    document.getElementById('btLead').textContent =
+      'No checked months on file yet — retrain the monthly model to record them.';
+    document.getElementById('btFoot').textContent = '';
+    return;
+  }
+  BT.months = d.months; BT.summary = d.summary; BT.note = d.note;
+  document.getElementById('btMore').addEventListener('click', () => {
+    BT.all = !BT.all; renderBacktest();
+  });
+  renderBacktest();
+}
+
+/* Within a tenth of the real number is close for a forecast made a year out;
+   a quarter off is where a reader should stop leaning on it. */
+const errTone = pct => token(pct <= 10 ? '--good' : pct <= 25 ? '--moderate' : '--poor');
+
+function renderBacktest() {
+  const s = BT.summary;
+  document.getElementById('btLead').innerHTML =
+    `Across <b>${s.count} months it had never seen</b> (${s.from} to ${s.to}), this forecast `
+    + `was off by <b>${s.mae} AQI</b> on average, or ${s.mape}% of what the month turned out `
+    + `to be. ${s.within10} of them landed within a tenth of the real number.`;
+
+  const shown = BT.all ? BT.months : BT.months.slice(0, 12);
+  document.getElementById('btRows').innerHTML = shown.map(m => {
+    const off = Math.round(Math.abs(m.error));
+    const sign = m.error > 0 ? '+' : m.error < 0 ? '\u2212' : '';
+    return '<div class="bt-row">'
+      + `<span class="m">${m.monthName.slice(0,3)} ${String(m.year).slice(2)}`
+      + (m.partYear ? '<span class="part" title="from a part-run year">\u25E6</span>' : '')
+      + '</span>'
+      + `<span class="v">${m.predicted}</span>`
+      + `<span class="v">${Math.round(m.actual)}</span>`
+      + `<span class="e" style="color:${errTone(m.pct)}">${sign}${off} <i>${m.pct}%</i></span>`
+      + '</div>';
+  }).join('');
+
+  const more = document.getElementById('btMore');
+  more.classList.toggle('hidden', BT.months.length <= 12);
+  more.textContent = BT.all ? 'Show recent months only' : `Show all ${BT.months.length} months`;
+
+  /* The honest caveats, in the open: the one month it got badly wrong, and the
+     fact that season-and-level alone does about as well at this horizon. */
+  const w = s.worst;
+  document.getElementById('btFoot').innerHTML =
+    `Its worst month was ${w.monthName} ${w.year} — it called ${w.predicted}, the month came in `
+    + `at ${Math.round(w.actual)}. Season and level alone would have been off by `
+    + `${s.climatologyMae} AQI across the same months, against this model's ${s.mae}: a year out `
+    + 'there is little to know beyond the season and the trend, and the ensemble does not pretend '
+    + 'otherwise. Day and week forecasts are this monthly number scaled by a day or week factor, '
+    + 'so they inherit the error above.';
 }
 
 /* The Stitch "Full Year Outlook" tiles — tapping one reads that month. */

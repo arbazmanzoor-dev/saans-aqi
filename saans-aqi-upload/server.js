@@ -601,6 +601,43 @@ const DELHI_STATIONS = [
   '@2553','@2554','@2556','@10111','@10112','@10113','@10114',
   '@10115','@10118','@10121','@10124','@10704','@10705',
 ];
+/* WAQI reports the US EPA AQI, not India's National AQI, and the two disagree
+   by enough to change what a reader is told: Mandir Marg on 4 Oct 2026 read 114
+   on WAQI and 131 on CPCB's scale, with the dominant pollutant flipping from
+   PM2.5 to PM10. Feeding the US number to a model trained on NAQI would be a
+   straight scale error, so each pollutant's sub-index is inverted back to a
+   concentration through the US breakpoints aqicn documents, then rated again on
+   CPCB's. Two caveats, both deliberate: aqicn's published table is the pre-2024
+   EPA one (the revision moved only the bands below 35.4 and above 125.4, and
+   the 100-150 band where Delhi often sits is identical either way), and only
+   PM2.5 and PM10 are converted, because the gases are rated on 1- and 8-hour
+   maxima here and 24-hour means there, which is not a conversion but a guess.
+   In Delhi PM leads the index virtually always. Worth re-checking against a
+   CPCB station once data.gov.in answers again. */
+const US_BP = {
+  'PM2.5': [0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4],
+  'PM10':  [0, 54,   154,  254,  354,   424,   604  ],
+};
+const US_INDEX = [0, 50, 100, 150, 200, 300, 500];
+function usConcentration(sub, bp) {
+  for (let k = 1; k < US_INDEX.length; k++)
+    if (sub <= US_INDEX[k])
+      return bp[k-1] + (sub - US_INDEX[k-1]) * (bp[k] - bp[k-1]) / (US_INDEX[k] - US_INDEX[k-1]);
+  return bp[bp.length-1];
+}
+/* null when the station carries neither PM reading — NAQI without PM is not a
+   number this app should publish. */
+function naqiFromWaqi(iaqi) {
+  let worst = null, lead = null;
+  for (const [pol, key] of [['PM2.5', 'pm25'], ['PM10', 'pm10']]) {
+    const sub = Number(iaqi && iaqi[key] && iaqi[key].v);
+    if (!Number.isFinite(sub) || sub < 0) continue;
+    const naqi = wards.subIndex(usConcentration(sub, US_BP[pol]), wards.BREAKPOINTS[pol]);
+    if (worst === null || naqi > worst) { worst = naqi; lead = pol; }
+  }
+  return worst === null ? null : { aqi: Math.round(worst), dominant: lead };
+}
+
 let rtCache = null, rtCacheTime = 0;
 const RT_CACHE_MS = 30*60*1000;
 const WAQI_STALE_MS = 3*3600*1000;   // past this a reading is history, not "now"
@@ -669,8 +706,10 @@ async function fetchStations() {
       .filter(r=>r.status==='fulfilled'&&r.value?.status==='ok')
       .map(r => {
         const d = r.value.data, obs = Date.parse(d.time?.iso || '');
+        const own = naqiFromWaqi(d.iaqi);          // rated on India's scale, not America's
         return { station:(d.city?.name||'Delhi').replace(/,\s*India$/,''),
-                 aqi:parseInt(d.aqi), observed:d.time?.iso || null,
+                 aqi: own ? own.aqi : NaN, dominant: own ? own.dominant : null,
+                 usAqi: parseInt(d.aqi), observed:d.time?.iso || null,
                  age: Number.isFinite(obs) ? now - obs : Infinity };
       })
       .filter(r=>!isNaN(r.aqi)&&r.aqi>0);
@@ -688,10 +727,10 @@ async function fetchStations() {
     }
     const avgAqi = Math.round(fresh.reduce((s,r)=>s+r.aqi,0)/fresh.length);
     rtCache = { success:true, aqi:avgAqi,
-      stations: fresh.map(({station,aqi,observed})=>({station,aqi,observed})),
+      stations: fresh.map(({station,aqi,dominant,observed})=>({station,aqi,dominant,observed})),
       count: fresh.length,
       updated: new Date(now - Math.min(...fresh.map(r=>r.age))).toISOString(),
-      source: `live · ${fresh.length} WAQI station${fresh.length===1?'':'s'} (CPCB, relayed by aqicn.org)`,
+      source: `live · ${fresh.length} WAQI station${fresh.length===1?'':'s'} (CPCB via aqicn.org, rated on India's scale)`,
       band: (v => (BANDS.find(([max]) => v <= max) || BANDS[5])[1])(avgAqi) };
     rtCacheTime = Date.now();
     return rtCache;
@@ -1309,9 +1348,46 @@ app.post('/api/ai-analyze', async (req,res) => {
 app.get('/api/tomorrow', async (req,res) => {
   const rt = await fetchRealtimeAQI();
   const live = !rt.fallback && rt.count > 0;
-  const out = await nextday.tomorrowAQI({ aqi: rt.aqi, live });
+  /* buildFallback puts the cause after an em dash; hand that on so the card can
+     say the feed is behind rather than telling a reader to set a key they set. */
+  const why = rt.fallback && rt.source.includes('\u2014')
+    ? rt.source.split('\u2014').slice(1).join('\u2014').trim() : null;
+  const out = await nextday.tomorrowAQI({ aqi: rt.aqi, live, why });
   if (out.available) { out.band = bandLabel(out.aqi); out.todayBand = bandLabel(out.anchor.aqi); out.test = !!rt.test; }
   res.json(out);
+});
+
+/* How the monthly model actually did, month by month, on months it had never
+   seen. The figures come from the walk-forward in training: each year forecast
+   from earlier years only, so they are the errors a reader would have met at
+   the time rather than a fit reported back to itself. Training years are
+   absent on purpose. The summary is computed from these same rows, so the
+   headline cannot drift from the list under it. */
+app.get('/api/backtest', (req,res) => {
+  const bt = ML_META.backtest || {};
+  const months = Object.entries(bt.months || {}).map(([key, v]) => {
+    const [yr, mo] = key.split('_').map(Number);
+    const error = +(v.predicted - v.actual).toFixed(1);
+    return { year: yr, month: mo, monthName: MONTHS[mo-1],
+             predicted: v.predicted, actual: v.actual, climatology: v.climatology,
+             error, pct: +(Math.abs(error)/v.actual*100).toFixed(1),
+             partYear: !!v.part_year };
+  }).sort((a, b) => b.year - a.year || b.month - a.month);
+
+  const mean = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+  const summary = months.length ? {
+    count: months.length,
+    from: `${MONTHS[months[months.length-1].month-1]} ${months[months.length-1].year}`,
+    to:   `${MONTHS[months[0].month-1]} ${months[0].year}`,
+    mae:  +mean(months.map(m => Math.abs(m.error))).toFixed(1),
+    mape: +mean(months.map(m => m.pct)).toFixed(1),
+    // the same months scored against season-and-level alone, for comparison
+    climatologyMae: +mean(months.map(m => Math.abs(m.climatology - m.actual))).toFixed(1),
+    within10: months.filter(m => m.pct <= 10).length,
+    worst: months.reduce((a, b) => (b.pct > a.pct ? b : a)),
+    yearsTested: bt.years_tested || [], partYears: bt.part_year || [],
+  } : null;
+  res.json({ months, summary, note: bt.note || null });
 });
 
 // Ward-wise AQI: CPCB stations interpolated onto ward centres

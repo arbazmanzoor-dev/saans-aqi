@@ -297,7 +297,7 @@ def backtest(history, meta, model_names):
     whole pipeline rather than just the seasonal fit."""
     complete = sorted({y for y in {y for y, _ in history}
                        if sum((y, m) in history for m in range(1, 13)) == 12})
-    rows, per_model = [], {n: [] for n in model_names}
+    rows, per_model, extra = [], {n: [] for n in model_names}, []
     for test_year in complete[BACKTEST_FROM:]:
         past = {k: v for k, v in history.items() if k[0] < test_year}
         levels, _, slope, anchor_year, anchor_level = build_levels(past)
@@ -315,7 +315,27 @@ def backtest(history, meta, model_names):
                 per_model[name].append((level*ratio, actual))
             blended = level*sum(preds.values())/len(preds)
             rows.append((test_year, month, blended, actual, level*shape[month]))
-    return rows, per_model
+
+    # The newest year is usually part-run. Its observed months are still a fair
+    # test — forecast from earlier years only, exactly as above — and they are
+    # the months a reader is most likely to care about, so don't throw them away
+    # for the sake of a tidy twelve. They are left out of the scores, which are
+    # quoted per whole year, and carried only as per-month rows.
+    years  = sorted({y for y, _ in history})
+    latest = years[-1] if years else None
+    partial = [m for m in range(1, 13) if (latest, m) in history] if latest else []
+    if latest is not None and latest not in complete and partial and latest > complete[BACKTEST_FROM]:
+        past = {k: v for k, v in history.items() if k[0] < latest}
+        levels, _, slope, anchor_year, anchor_level = build_levels(past)
+        level = project_level(latest, anchor_year, anchor_level, slope)
+        X, y, w = training_matrix(past, levels, meta)
+        models = fit_all(dict(make_models()[0]), X, y, w)
+        shape  = seasonal_shape(past, sorted({k[0] for k in past})[-SHAPE_YEARS:])
+        for month in partial:
+            preds = predict_all(models, make_features(latest, month, meta))
+            blended = level*sum(preds.values())/len(preds)
+            extra.append((latest, month, blended, history[(latest, month)], level*shape[month]))
+    return rows, per_model, extra
 
 
 def score(pairs):
@@ -343,7 +363,7 @@ def main():
              '   (xgboost unavailable — using sklearn HistGradientBoosting;'
              ' `brew install libomp && pip install xgboost` to switch)'))
 
-    rows, per_model = backtest(history, meta, names)
+    rows, per_model, partial_rows = backtest(history, meta, names)
     metrics = {n: score(p) for n, p in per_model.items()}
     blend_score = score([(b, a) for _, _, b, a, _ in rows])
     clim_score  = score([(c, a) for _, _, _, a, c in rows])
@@ -422,6 +442,24 @@ def main():
         'level_model': {'slope_per_year': round(slope, 3), 'anchor_year': anchor_year,
                         'anchor_level': round(anchor_level, 1), 'damping': DAMPING,
                         'years_used': LEVEL_YEARS},
+        # Per-month walk-forward detail, so the site can show what the model
+        # said about a month before it happened, beside what actually came. The
+        # aggregates above are these rows scored; keeping them lets a reader
+        # check a single month instead of trusting one MAPE.
+        'backtest': {
+            'months': {f'{yr}_{mo}': {'predicted': max(1, round(pred)),
+                                      'actual': round(act, 1),
+                                      'climatology': max(1, round(clim)),
+                                      **({'part_year': True} if partial else {})}
+                       for partial, src in ((False, rows), (True, partial_rows))
+                       for yr, mo, pred, act, clim in src},
+            'years_tested': sorted({r[0] for r in rows}),
+            'part_year': sorted({r[0] for r in partial_rows}),
+            'note': ('Out-of-sample: each year was forecast from earlier years only, so '
+                     'these are the errors a reader would have seen at the time. Training '
+                     'years (before the first tested year) have no entry, because the '
+                     'model had already seen them and the error would flatter it.'),
+        },
         'monthly_aqi_history': {f'{y}_{m}': v for (y, m), v in sorted(history.items())},
         'history_note': ('2015-2019 from data/delhi_daily_2015_2020.csv (city_day table '
                          'compiled from CPCB station data); 2020-2025 from the CPCB workbooks.'),
