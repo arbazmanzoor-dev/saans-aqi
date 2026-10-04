@@ -18,6 +18,7 @@ const WARDS_FILE = path.join(__dirname, 'data', 'delhi_wards.geojson');
 const CACHE_MS   = 30 * 60 * 1000;   // the feed updates hourly
 const RETRY_MS   = 5 * 60 * 1000;    // after a hard failure (e.g. a rejected key), don't hammer the feed
 const BLIP_MS    = 30 * 1000;        // after a dropped connection or server error, try again soon
+const PATIENCE   = 10;               // failures in a row before a blip is treated as an outage
 const RETRY_PAUSE_MS = 1500;         // between the first attempt and the retry
 const STALE_MS   = 3 * 3600 * 1000;  // drop stations this far behind the newest
 const NEIGHBOURS = 4;
@@ -54,6 +55,14 @@ function km(a, b) {
   const h = Math.sin((b.lat - a.lat) * p / 2) ** 2
           + Math.cos(a.lat * p) * Math.cos(b.lat * p) * Math.sin((b.lon - a.lon) * p / 2) ** 2;
   return 12742 * Math.asin(Math.sqrt(h));
+}
+
+/* Rounded, for a sentence a person reads: "25 minutes", "3 hours". */
+function spanText(ms) {
+  const m = Math.round(ms / 60000);
+  if (m < 60) return `${m} minute${m === 1 ? '' : 's'}`;
+  const h = Math.round(m / 60);
+  return `${h} hour${h === 1 ? '' : 's'}`;
 }
 
 /* ── stations ─────────────────────────────────────────────────────────── */
@@ -196,6 +205,7 @@ function interpolate(point, stations) {
 
 /* ── the endpoint's payload ───────────────────────────────────────────── */
 let cache = null, cacheTime = 0;
+let failStreak = 0, failSince = 0;   // consecutive failed fetches, and when they started
 /* Invented stations for the test switch, at real CPCB sites so the map spreads
    plausibly. Only reachable when SAANS_TEST_AQI is set, and flagged test:true. */
 const TEST_SITES = [
@@ -235,10 +245,15 @@ async function wardAQI() {
     return { ...base, available: false, reason: 'no_boundaries',
              message: `No ward boundaries at ${path.relative(__dirname, WARDS_FILE)}.` };
 
-  const hold = cache && (cache.available ? CACHE_MS : cache.transient ? BLIP_MS : RETRY_MS);
+  /* A dropped request is worth retrying in seconds. Ten failures in a row is
+     not a dropped request: back off to the slow interval, so a government
+     outage lasting hours doesn't cost thousands of pointless calls. */
+  const hold = cache && (cache.available ? CACHE_MS
+             : cache.transient && failStreak < PATIENCE ? BLIP_MS : RETRY_MS);
   if (cache && Date.now() - cacheTime < hold) return cache;
   try {
     const stations = stationsFrom(await fetchRecords(key));
+    failStreak = 0; failSince = 0;
     if (stations.length < 3) {
       cache = { ...base, available: false, reason: 'too_few_stations', stationCount: stations.length,
                 message: `Only ${stations.length} Delhi station${stations.length === 1 ? '' : 's'} reporting enough pollutants right now.` };
@@ -252,8 +267,18 @@ async function wardAQI() {
         wards: wards.map(w => ({ id: w.id, name: w.name, includes: w.includes, ...interpolate(w, stations) })) };
     }
   } catch (e) {
+    failStreak++;
+    if (!failSince) failSince = Date.now();
+    /* Name the feed as theirs: a reader seeing a bare error code assumes the
+       fault is this site's, or their own connection. */
+    const slow = failStreak >= PATIENCE;
+    const tail = !e.transient ? ''
+      : slow ? ` CPCB's feed has been unavailable for ${spanText(Date.now() - failSince)}`
+             + ` — the outage is at their end, not this site's. Still trying, now every five minutes.`
+             : ` The outage is at their end, not this site's. Trying again in 30 seconds.`;
     cache = { ...base, available: false, reason: 'feed_error', transient: !!e.transient,
-              message: `${e.message}.${e.transient ? ' Trying again in 30 seconds.' : ''}` };
+              downSince: new Date(failSince).toISOString(), failures: failStreak,
+              message: `${e.message}.${tail}` };
   }
   cacheTime = Date.now();
   return cache;
