@@ -205,6 +205,10 @@ body{
 .mtile b{font-size:22px;font-weight:800;line-height:1.15;margin-top:2px}
 .mtile i{font-style:normal;font-size:10.5px;font-weight:600;margin-top:1px}
 
+.fc-check{margin-top:12px;font-size:13px;line-height:1.6;color:var(--ink2);text-align:center}
+.fc-check b{font-weight:800;font-variant-numeric:tabular-nums}
+.fc-check .none{color:var(--muted)}
+
 /* ── track record: what the model said, against what came ── */
 .bt-head,.bt-row{display:grid;grid-template-columns:5rem 1fr 1fr 5.4rem;gap:8px;align-items:baseline}
 .bt-head{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding-bottom:7px;border-bottom:1px solid var(--line);margin-top:12px}
@@ -442,13 +446,13 @@ body{
       <div class="card">
         <div class="card-title"><span class="ti"><span class="ms" style="font-size:17px">online_prediction</span></span>Predict AQI</div>
         <div class="seg" id="scopeSeg"></div>
-        <div class="seg" id="yearSeg" style="margin-top:8px"></div>
+        <div class="fc-when" id="yearSeg" style="margin-top:8px"></div>
         <div class="fc-when hidden" id="fcWhen"></div>
         <div class="panel" id="fcPanel">
           <div class="eyebrow" id="fcHeading">&mdash;</div>
           <div class="fc-num num" id="fcNum">&mdash;</div>
           <div class="fc-band" id="fcBand">&mdash;</div>
-          <div class="ci">
+          <div class="ci" id="fcCi">
             <div class="ci-track">
               <div class="ci-span" id="ciSpan"></div>
               <div class="ci-mid" id="ciMid"></div>
@@ -456,6 +460,7 @@ body{
             <div class="ci-labels"><span id="ciLo">&mdash;</span><span>likely range</span><span id="ciHi">&mdash;</span></div>
           </div>
         </div>
+        <div class="fc-check" id="fcCheck"></div>
       </div>
 
       <div class="card">

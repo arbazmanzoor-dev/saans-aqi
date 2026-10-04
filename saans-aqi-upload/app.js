@@ -287,27 +287,37 @@ const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
 
 async function initForecast() {
   const now = new Date();
-  state.years = [now.getFullYear(), now.getFullYear()+1, now.getFullYear()+2];
+  /* Years run from the first month the model has been checked on up to two
+     years ahead — a reader asking what the forecast said about a date gone by
+     has to be able to pick it. Three buttons became nine years, which is a
+     dropdown's job, not a segmented strip's. */
+  await loadBacktest();
+  const first = BT.months && BT.months.length
+    ? Math.min(...BT.months.map(m => m.year)) : now.getFullYear();
+  state.years = [];
+  for (let y = Math.min(first, now.getFullYear()); y <= now.getFullYear()+2; y++) state.years.push(y);
+  state.yearIdx = Math.max(0, state.years.indexOf(now.getFullYear()));
   state.fcMonth = now.getMonth();
-  state.fcDay = Math.min(now.getDate(), daysInMonth(state.years[0], state.fcMonth));
+  state.fcDay = Math.min(now.getDate(), daysInMonth(state.years[state.yearIdx], state.fcMonth));
   state.fcWeek = 1;
-  document.getElementById('yearSeg').innerHTML = state.years
-    .map((y,i) => `<button data-i="${i}">${y}</button>`).join('');
+  document.getElementById('yearSeg').innerHTML =
+    `<div class="sel-wrap"><select class="select" id="fcYearSel">`
+    + state.years.map((y,i) => `<option value="${i}"${i===state.yearIdx?' selected':''}>${y}</option>`).join('')
+    + `</select></div>`;
   document.getElementById('scopeSeg').innerHTML = SCOPES
     .map(s => `<button data-s="${s.id}">${s.label}</button>`).join('');
-  document.querySelectorAll('#yearSeg button').forEach(b => b.addEventListener('click', () => {
-    state.yearIdx = +b.dataset.i; loadForecastYear();
-  }));
+  document.getElementById('fcYearSel').addEventListener('change', e => {
+    state.yearIdx = +e.target.value; loadForecastYear();
+  });
   document.querySelectorAll('#scopeSeg button').forEach(b => b.addEventListener('click', () => {
     state.scope = b.dataset.s; renderForecast();
   }));
   await loadForecastYear();
-  loadBacktest();
 }
 
 function syncSegs() {
-  document.querySelectorAll('#yearSeg button').forEach(b =>
-    b.classList.toggle('on', +b.dataset.i === state.yearIdx));
+  const ysel = document.getElementById('fcYearSel');
+  if (ysel) ysel.value = String(state.yearIdx);
   document.querySelectorAll('#scopeSeg button').forEach(b =>
     b.classList.toggle('on', b.dataset.s === state.scope));
 }
@@ -356,10 +366,10 @@ async function renderForecast() {
   const yr = state.years[state.yearIdx];
 
   /* Day / week values come from the server so the day factors apply. */
-  let value, heading, lo, hi;
+  let value, heading, lo, hi, check;
   if (state.scope === 'month') {
     const row = (state.monthlyRows || [])[state.fcMonth] || {};
-    value = row.predicted; lo = row.ciLower; hi = row.ciUpper;
+    value = row.predicted; lo = row.ciLower; hi = row.ciUpper; check = row.check;
     heading = `${MONTHS[state.fcMonth]} ${yr}`;
   } else {
     const body = state.scope === 'day'  ? { type:'day', month: state.fcMonth+1, day: state.fcDay, targetYear: yr }
@@ -367,22 +377,31 @@ async function renderForecast() {
                :                          { type:'year', targetYear: yr };
     const r = await fetch(`${API}/predict-ml`, { method:'POST',
       headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(x=>x.json());
-    value = r.predicted; lo = r.ciLower; hi = r.ciUpper;
+    value = r.predicted; lo = r.ciLower; hi = r.ciUpper; check = r.check;
     heading = state.scope === 'day'  ? `${MONTHS[state.fcMonth]} ${state.fcDay}, ${yr}`
             : state.scope === 'week' ? `Week ${state.fcWeek} of ${yr}`
             :                          `Annual average · ${yr}`;
   }
+  /* For a period that has already happened, the number on show is the forecast
+     the model made without having seen that year — not today's model asked
+     about a year it was trained on, which would quietly flatter it and leave
+     two different "forecasts" on one screen. */
+  if (check && check.forecast != null) { value = check.forecast; lo = null; hi = null; }
   if (value == null) return;
 
   const b = band(value);
   const panel = document.getElementById('fcPanel');
   panel.style.background = b.bg; panel.style.borderColor = b.line;
-  document.getElementById('fcHeading').textContent = heading;
+  document.getElementById('fcHeading').textContent =
+    heading + (check && check.forecast != null ? ' · forecast at the time' : '');
   const num = document.getElementById('fcNum'); num.textContent = value; num.style.color = b.color;
   const lbl = document.getElementById('fcBand'); lbl.textContent = b.label; lbl.style.color = b.color;
 
   /* The server's range: where 95% of past forecasts of this kind landed,
-     measured per month (so lopsided, and wider in the monsoon). */
+     measured per month (so lopsided, and wider in the monsoon). A period that
+     has already happened has no range worth drawing — the answer is known. */
+  const settled = !!(check && check.forecast != null);
+  document.getElementById('fcCi').classList.toggle('hidden', settled);
   if (lo == null || hi == null) { lo = value; hi = value; }
   const pct = v => Math.min(100, (v/500)*100);
   const span = document.getElementById('ciSpan');
@@ -392,7 +411,51 @@ async function renderForecast() {
   document.getElementById('ciLo').textContent = lo;
   document.getElementById('ciHi').textContent = hi;
 
+  renderCheck(check);
   renderYearGrid();
+}
+
+/* Has the period being asked about already happened? Only then is a missing
+   measurement worth explaining — for a date still ahead, silence is right. */
+function periodIsPast(yr) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (state.scope === 'day')   return new Date(yr, state.fcMonth, state.fcDay) < today;
+  if (state.scope === 'month') return new Date(yr, state.fcMonth+1, 0) < today;
+  if (state.scope === 'week')  return new Date(yr, 0, 1 + (state.fcWeek-1)*7 + 6) < today;
+  return yr < now.getFullYear();
+}
+
+/* The forecast beside what actually came. The figure on the left is the one the
+   model produced without having seen that year — today's model was trained on
+   it, so quoting that back would be marking its own homework. */
+function renderCheck(c) {
+  const box = document.getElementById('fcCheck');
+  const yr = state.years[state.yearIdx];
+  if (!c) { box.innerHTML = ''; return; }
+  if (c.actual == null) {
+    box.innerHTML = periodIsPast(yr)
+      ? `<span class="none">No measurement on file for this one — the daily record ends ${c.dataThrough}.</span>`
+      : '';
+    return;
+  }
+  if (c.forecast == null) {
+    const why = c.why === 'part_period'
+      ? `only ${c.days} day${c.days === 1 ? '' : 's'} of it are on file, too little to stand for the `
+        + 'whole period'
+      : c.why === 'training_year'
+      ? "this period is inside the model's training years, so there is no honest forecast to set "
+        + 'against it'
+      : 'this period has not been through the walk-forward yet';
+    box.innerHTML = `Measured so far: <b>${c.actual}</b><span class="none"> — ${why}.</span>`;
+    return;
+  }
+  const sign = c.error > 0 ? '+' : c.error < 0 ? '\u2212' : '';
+  box.innerHTML = `Actually came in at <b>${c.actual}</b> &nbsp;·&nbsp; the forecast was off by `
+    + `<b style="color:${errTone(c.pct)}">${sign}${Math.abs(c.error)}</b> (${c.pct}%)`
+    + `<br><span class="none">That forecast was made from earlier years only — `
+    + `${c.days === 1 ? 'the measurement is that day\u2019s reading' :
+         `the measurement averages the ${c.days} days on file`}.</span>`;
 }
 
 /* ═══ TRACK RECORD ═══
@@ -463,7 +526,10 @@ function renderBacktest() {
 function renderYearGrid() {
   const yr = state.years[state.yearIdx];
   document.getElementById('yearGridTitle').textContent = `Full Year Outlook · ${yr}`;
+  const rows = state.monthlyRows || [];
   document.getElementById('yearGrid').innerHTML = (state.monthly || []).map((v, i) => {
+    const c = rows[i] && rows[i].check;
+    if (c && c.forecast != null) v = c.forecast;     // a measured month shows what was forecast then
     const b = band(v);
     const on = state.scope !== 'year' && state.fcMonth === i;
     return `<button class="mtile ${on?'on':''}" data-i="${i}"

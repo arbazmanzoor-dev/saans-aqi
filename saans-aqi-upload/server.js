@@ -847,6 +847,79 @@ app.get('/api/daily/:year/:month', (req,res) => {
   res.json(recs);
 });
 
+/* ── what actually happened ────────────────────────────────────────────────
+   A forecast is worth little without the number it was trying to hit, so every
+   prediction for a period that has already been measured carries that
+   measurement with it. Two rules keep it honest. The measurement is only ever
+   the days really on file — never a month implied from a handful of them — and
+   the forecast shown beside it is the walk-forward one, made by a model that
+   had not seen that year. Today's model was trained on those years; quoting it
+   back would flatter it. Where the walk-forward has no entry (the training
+   years before 2020) the measurement stands alone and says why. */
+const weekOfYear = (month, day) =>
+  Math.min(52, Math.ceil(([0,31,59,90,120,151,181,212,243,273,304,334][month-1] + day) / 7));
+
+const DATA_LAST = (() => {
+  const key = r => r.year*10000 + r.month*100 + r.day;
+  const r = analytics.recs.reduce((a, b) => (key(b) > key(a) ? b : a));
+  return { year:r.year, month:r.month, day:r.day, label:`${MONTHS[r.month-1]} ${r.day}, ${r.year}` };
+})();
+
+function actualFor(type, yr, mo, day, week) {
+  const R = analytics.recs;
+  const vs = type === 'day'   ? R.filter(r => r.year===yr && r.month===mo && r.day===day)
+           : type === 'month' ? R.filter(r => r.year===yr && r.month===mo)
+           : type === 'week'  ? R.filter(r => r.year===yr && weekOfYear(r.month, r.day)===week)
+           :                    R.filter(r => r.year===yr);
+  if (!vs.length) return null;
+  return { aqi: Math.round(vs.reduce((a,b)=>a+b.aqi,0)/vs.length), days: vs.length };
+}
+
+/* The monthly figure the walk-forward produced, scaled the same way a live
+   forecast of that scope would be. */
+function forecastWas(type, yr, mo, day, week) {
+  const months = (ML_META.backtest || {}).months || {};
+  if (type === 'year') {
+    const mine = Object.entries(months).filter(([k]) => +k.split('_')[0] === yr).map(([, v]) => v);
+    return mine.length === 12
+      ? Math.round(mine.reduce((a,v)=>a+v.predicted,0)/12) : null;   // a part year has no annual mean
+  }
+  const month = type === 'week' ? getWeekFactor(week).month : mo;
+  const e = months[`${yr}_${month}`];
+  if (!e) return null;
+  if (type === 'day')  return Math.max(1, Math.round(e.predicted * getDayFactor(month, day)));
+  if (type === 'week') return Math.max(1, Math.round(e.predicted * getWeekFactor(week).factor));
+  return e.predicted;
+}
+
+/* Enough of the period on file to stand for it. A year made of ninety days is
+   not an annual average, and setting one against an annual forecast would be
+   comparing two different things. */
+const NEEDS_DAYS = { day: 1, week: 4, month: 20, year: 330 };
+
+function checkFor(type, yr, mo, day, week) {
+  const out = { dataThrough: DATA_LAST.label };
+  const actual = actualFor(type, yr, mo, day, week);
+  if (!actual) { out.actual = null; return out; }
+  out.actual = actual.aqi; out.days = actual.days;
+  if (actual.days < NEEDS_DAYS[type]) { out.forecast = null; out.why = 'part_period'; return out; }
+  const forecast = forecastWas(type, yr, mo, day, week);
+  if (forecast == null) {
+    const tested = (ML_META.backtest || {}).years_tested || [];
+    const first = tested.length ? Math.min(...tested) : null;
+    out.forecast = null;
+    /* Before the first tested year the model was trained on it; at or after,
+       the year simply has not been through the walk-forward (a part-run year
+       has no full-year figure). Those call for different sentences. */
+    out.why = (first != null && yr < first) ? 'training_year' : 'not_tested';
+    return out;
+  }
+  out.forecast = forecast;
+  out.error = forecast - actual.aqi;
+  out.pct = +(Math.abs(out.error)/actual.aqi*100).toFixed(1);
+  return out;
+}
+
 // ML predict — mirrors the scope handling of /api/predict
 app.post('/api/predict-ml', (req,res) => {
   const {month,targetYear,type,day,week} = req.body;
@@ -866,6 +939,7 @@ app.post('/api/predict-ml', (req,res) => {
     return res.json({ ...all[0], ...members, predicted:annual,
       month:null, targetYear:yr, type:'year', yearSoFar:null,
       historicalMean:globalStats.mean, historicalStd:globalStats.std,
+      check: checkFor('year', yr),
       ...rangeFor(annual, rangeModel.year) });
   }
 
@@ -876,6 +950,7 @@ app.post('/api/predict-ml', (req,res) => {
     const base = predictML(wf.month, yr);
     const value = Math.max(1, Math.round(base.predicted*wf.factor));
     return res.json({ ...base, month:wf.month, targetYear:yr, type:'week', predicted:value,
+      check: checkFor('week', yr, wf.month, null, parseInt(week)),
       ...rangeFor(value, Math.hypot(rangeModel.month[wf.month], rangeModel.week[wf.month])) });
   }
 
@@ -884,9 +959,10 @@ app.post('/api/predict-ml', (req,res) => {
     const f = getDayFactor(m,parseInt(day));
     const value = Math.max(1, Math.round(base.predicted*f));
     return res.json({ ...base, month:m, targetYear:yr, type:'day', predicted:value,
+      check: checkFor('day', yr, m, parseInt(day)),
       ...rangeFor(value, Math.hypot(rangeModel.month[m], rangeModel.day[m])) });
   }
-  res.json({ ...base, month:m, targetYear:yr, type:'month' });
+  res.json({ ...base, month:m, targetYear:yr, type:'month', check: checkFor('month', yr, m) });
 });
 
 // ML forecast (12 months)
@@ -895,7 +971,7 @@ app.get('/api/ml-forecast/:year', (req,res) => {
   const rows = Array.from({length:12},(_,i) => {
     const m  = i+1;
     const ml = predictML(m,yr);
-    return { month:m, monthName:MONTHS[m-1], ...ml };
+    return { month:m, monthName:MONTHS[m-1], ...ml, check: checkFor('month', yr, m) };
   });
   res.json(rows);
 });
