@@ -38,9 +38,15 @@ try {
 }
 
 /* ── the model, walked in plain JS ───────────────────────────────────────── */
+/* Math.fround is not decoration. scikit-learn casts its training data to
+   float32 before choosing splits, then stores the thresholds as float64, so it
+   is comparing a float32 value against a float64 threshold. Compare the full
+   float64 value here and a feature sitting within a float32 ulp of a split
+   takes the other branch — one row in forty did exactly that, moving the
+   prediction by 0.4%. Rare, silent, and avoidable by casting the same way. */
 function leaf(tree, x) {
   let i = 0;
-  while (tree.l[i] !== -1) i = x[tree.f[i]] <= tree.t[i] ? tree.l[i] : tree.r[i];
+  while (tree.l[i] !== -1) i = Math.fround(x[tree.f[i]]) <= tree.t[i] ? tree.l[i] : tree.r[i];
   return tree.v[i];
 }
 
@@ -52,9 +58,9 @@ function predictLog(x, model = MODEL, rate = MODEL && MODEL.learning_rate) {
 }
 
 /* Same transforms train_nextday.py applies, in the same order. */
-function wxVec(w) {
+function wxVec(w, keys = MODEL && MODEL.wx_keys) {
   const out = [];
-  for (const k of MODEL.wx_keys) {
+  for (const k of keys) {
     const v = w[k];
     if (v === null || v === undefined || Number.isNaN(v)) return null;
     if (k === 'wind_direction_10m_dominant') out.push(Math.sin(v * Math.PI / 180), Math.cos(v * Math.PI / 180));
@@ -80,7 +86,7 @@ async function fetchWeatherOnce() {
     + 'wind_speed_10m_max,wind_speed_10m_mean,wind_direction_10m_dominant,'
     + 'precipitation_sum,shortwave_radiation_sum'
     + '&hourly=boundary_layer_height,wind_speed_10m'
-    + '&past_days=1&forecast_days=3&timezone=Asia%2FKolkata';
+    + '&past_days=1&forecast_days=5&timezone=Asia%2FKolkata';   // day 3 needs day 3's weather
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
@@ -179,6 +185,21 @@ function drivers(today, tomorrow) {
    error — against 27.9 for the Open-Meteo model and 31.0 for the old rule.
    MET's terms: identify the app in User-Agent, honour Expires and
    If-Modified-Since, and credit MET Norway (CC BY 4.0). */
+/* Days two and three. Optional: the site works without it, falling back to the
+   decay rule, which is what this file replaces only where it measurably beat
+   it in training. */
+const MULTI_FILE = path.join(__dirname, 'multiday_model.json');
+let MULTI = null;
+try {
+  MULTI = JSON.parse(fs.readFileSync(MULTI_FILE, 'utf8'));
+  const hs = Object.keys(MULTI.horizons).sort();
+  console.log(`📅 Multi-day model loaded — day ${hs.join(', day ')} `
+    + hs.map(h => `(MAE ${MULTI.horizons[h].walk_forward.mae} vs rule `
+                + `${MULTI.horizons[h].walk_forward.baselines.app_rule_phi_0744.mae})`).join(' '));
+} catch (e) {
+  if (e.code !== 'ENOENT') console.error(`⚠️  multiday_model.json unreadable: ${e.message}`);
+}
+
 const MET_FILE = path.join(__dirname, 'nextday_met_model.json');
 let MET = null;
 try {
@@ -396,4 +417,58 @@ async function tomorrowAQI(reading) {
   return { available: false, reason: 'no_weather', message: problems.join('; ') || 'no weather source available' };
 }
 
-module.exports = { tomorrowAQI, predictLog, wxVec, metHours, metSummary, MODEL, MET };
+/* ── days two and three ──────────────────────────────────────────────────
+   Same shape as tomorrow: today's reading and today's weather against the
+   target day's. Open-Meteo only — MET Norway's hourly forecast runs about 63
+   hours, which does not cover day three, and a horizon that silently became a
+   different model on a fallback would be worse than one that is simply absent.
+   Returns the horizons it can answer, which may be none. */
+async function daysAheadAQI(reading) {
+  if (!MULTI || !reading || !reading.live || !(reading.aqi > 0)) return [];
+  const now = new Date();
+  const climToday = climatologyFor(now, MULTI.climatology);
+  if (!climToday) return [];
+  let weather;
+  try { weather = await fetchWeather(); } catch (e) { return []; }
+  const wToday = weather.days[iso(now)];
+  if (!wToday) return [];
+  const vToday = wxVec(wToday, MULTI.wx_keys);
+  if (!vToday) return [];
+
+  const out = [];
+  for (const key of Object.keys(MULTI.horizons).map(Number).sort((a, b) => a - b)) {
+    const H = MULTI.horizons[String(key)];
+    const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + key);
+    const wTarget = weather.days[iso(target)];
+    const climTarget = climatologyFor(target, MULTI.climatology);
+    if (!wTarget || !climTarget) continue;          // forecast does not reach that far
+    const vTarget = wxVec(wTarget, MULTI.wx_keys);
+    if (!vTarget) continue;                         // a gap in the forecast, not a zero
+    const doy = Math.floor((target - new Date(target.getFullYear(), 0, 0)) / 86400000);
+    const x = [
+      Math.log(reading.aqi), Math.log(reading.aqi / climToday),
+      Math.log(climTarget), Math.log(climTarget / climToday),
+      Math.sin(2 * Math.PI * doy / 365), Math.cos(2 * Math.PI * doy / 365),
+      ...vToday, ...vTarget, ...vTarget.map((v, i) => v - vToday[i]),
+    ];
+    if (x.length !== H.features.length) {
+      console.error(`⚠️  day ${key}: built ${x.length} features, model expects ${H.features.length}`);
+      continue;
+    }
+    const logPred = predictLog(x, H, H.learning_rate);
+    const value = finish(reading, target, climToday, climTarget, logPred, H.rel_sigma, {
+      horizon: key,
+      drivers: drivers(wToday, wTarget),
+      basis: `day ${key} from today's station reading and the weather forecast`,
+      weatherSource: 'open-meteo', weatherCredit: 'Weather: Open-Meteo',
+      weatherStale: !!weather.stale,
+      accuracy: { mae: H.walk_forward.mae, mape: H.walk_forward.mape,
+                  versusRule: H.walk_forward.baselines.app_rule_phi_0744.mae,
+                  years: H.walk_forward.years },
+    });
+    out.push(value);
+  }
+  return out;
+}
+
+module.exports = { tomorrowAQI, daysAheadAQI, predictLog, wxVec, metHours, metSummary, MODEL, MET, MULTI };

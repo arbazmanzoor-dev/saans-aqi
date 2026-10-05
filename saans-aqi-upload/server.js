@@ -10,6 +10,7 @@ const XLSX    = require('xlsx');
 const Anthropic = require('@anthropic-ai/sdk');
 const alerts  = require('./alerts');
 const wards   = require('./wards');
+const readings = require('./readings.js');
 const nextday = require('./nextday');
 const path    = require('path');
 const fs      = require('fs');
@@ -44,9 +45,14 @@ const DAYS_IN_MONTH = (yr, m) =>
    stored as AQI readings. */
 let allRecords = [];
 const yearCoverage = {};
-for (let yr = 2020; yr <= 2025; yr++) {
-  const file = path.join(__dirname, `AQI_daily_city_level_delhi_${yr}_delhi_${yr}.xlsx`);
-  if (!fs.existsSync(file)) continue;
+/* Whatever workbooks are in the folder, rather than a fixed span: a new year's
+   file must not be loaded by the training scripts and ignored by the server. */
+const WORKBOOKS = fs.readdirSync(__dirname)
+  .map(f => [f, /^AQI_daily_city_level_delhi_(\d{4})_delhi_\1\.xlsx$/.exec(f)])
+  .filter(([, m]) => m)
+  .map(([f, m]) => [Number(m[1]), path.join(__dirname, f)])
+  .sort((a, b) => a[0] - b[0]);
+for (const [yr, file] of WORKBOOKS) {
   const wb   = XLSX.readFile(file);
   const ws   = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(ws);
@@ -647,6 +653,17 @@ const WAQI_MIN      = 3;             // fresh stations before it counts as a cit
 const MONTH_AVGS = Object.fromEntries(
   Object.entries(monthlyStats).map(([m,st]) => [m, st.mean]));
 
+/* Saving is best-effort: a disk that will not take the row must never cost a
+   reader their AQI. It is logged the first time so it cannot fail silently. */
+let noteFailed = false;
+function noteReading(reading) {
+  const r = readings.record(reading);
+  if (r && r.error && !noteFailed) {
+    noteFailed = true;
+    console.error(`⚠️  could not save today's reading: ${r.error}`);
+  }
+}
+
 function buildFallback(note) {
   const m = new Date().getMonth()+1;
   const why = note ? ` — ${note}`
@@ -678,6 +695,9 @@ async function fetchStations() {
         source: `live · ${w.stations.length} CPCB stations (data.gov.in)`,
         band: (v => (BANDS.find(([max]) => v <= max) || BANDS[5])[1])(avg) };
       rtCacheTime = Date.now();
+      /* Today's measurement, written down. CPCB's workbooks arrive a year
+         late, so without this the daily record can never catch up to now. */
+      noteReading(rtCache);
       return rtCache;
     }
   }
@@ -733,6 +753,7 @@ async function fetchStations() {
       source: `live · ${fresh.length} WAQI station${fresh.length===1?'':'s'} (CPCB via aqicn.org, rated on India's scale)`,
       band: (v => (BANDS.find(([max]) => v <= max) || BANDS[5])[1])(avgAqi) };
     rtCacheTime = Date.now();
+    noteReading(rtCache);
     return rtCache;
   } catch(e) { return buildFallback(); }
 }
@@ -842,8 +863,8 @@ app.get('/api/forecast/:year', (req,res) => {
 // Daily records
 app.get('/api/daily/:year/:month', (req,res) => {
   const yr=parseInt(req.params.year), mo=parseInt(req.params.month);
-  const recs = analytics.recs.filter(r=>r.year===yr&&r.month===mo)
-    .sort((a,b)=>a.day-b.day).map(r=>({day:r.day,aqi:r.aqi}));
+  const recs = allRecs().filter(r=>r.year===yr&&r.month===mo)
+    .sort((a,b)=>a.day-b.day).map(r=>({day:r.day,aqi:r.aqi,recorded:!!r.recorded}));
   res.json(recs);
 });
 
@@ -859,14 +880,31 @@ app.get('/api/daily/:year/:month', (req,res) => {
 const weekOfYear = (month, day) =>
   Math.min(52, Math.ceil(([0,31,59,90,120,151,181,212,243,273,304,334][month-1] + day) / 7));
 
-const DATA_LAST = (() => {
+/* The workbook days, plus every day saved since. Where both hold a date the
+   workbook wins: a published daily figure is CPCB's own, while ours is the last
+   24-hour mean we happened to read. Memoised on the two counts, so this is a
+   lookup rather than a rebuild on each of the twelve calls a year view makes. */
+let recCache = null, recCacheKey = '';
+function allRecs() {
+  const key = `${analytics.recs.length}:${readings.count()}`;
+  if (recCache && recCacheKey === key) return recCache;
+  const saved = readings.recs();
+  const have = new Set(analytics.recs.map(r => `${r.year}_${r.month}_${r.day}`));
+  recCache = saved.length
+    ? analytics.recs.concat(saved.filter(r => !have.has(`${r.year}_${r.month}_${r.day}`)))
+    : analytics.recs;
+  recCacheKey = key;
+  return recCache;
+}
+
+function dataLast() {
   const key = r => r.year*10000 + r.month*100 + r.day;
-  const r = analytics.recs.reduce((a, b) => (key(b) > key(a) ? b : a));
+  const r = allRecs().reduce((a, b) => (key(b) > key(a) ? b : a));
   return { year:r.year, month:r.month, day:r.day, label:`${MONTHS[r.month-1]} ${r.day}, ${r.year}` };
-})();
+}
 
 function actualFor(type, yr, mo, day, week) {
-  const R = analytics.recs;
+  const R = allRecs();
   const vs = type === 'day'   ? R.filter(r => r.year===yr && r.month===mo && r.day===day)
            : type === 'month' ? R.filter(r => r.year===yr && r.month===mo)
            : type === 'week'  ? R.filter(r => r.year===yr && weekOfYear(r.month, r.day)===week)
@@ -897,13 +935,33 @@ function forecastWas(type, yr, mo, day, week) {
    comparing two different things. */
 const NEEDS_DAYS = { day: 1, week: 4, month: 20, year: 330 };
 
-function checkFor(type, yr, mo, day, week) {
-  const out = { dataThrough: DATA_LAST.label };
+/* The last month in the model's training history. Anything after it the model
+   has never seen, so what it says about such a date today is already an honest
+   forecast — no walk-forward needed, and as this site saves days, those become
+   live tests of the model that is actually running. */
+const HISTORY_END = (() => {
+  const keys = Object.keys(ML_META.monthly_aqi_history || {});
+  if (!keys.length) return null;
+  return keys.map(k => k.split('_').map(Number))
+             .reduce((a, b) => (b[0]*12 + b[1] > a[0]*12 + a[1] ? b : a));
+})();
+const afterTraining = (yr, mo) =>
+  !!HISTORY_END && (yr*12 + mo) > (HISTORY_END[0]*12 + HISTORY_END[1]);
+
+function checkFor(type, yr, mo, day, week, predicted) {
+  const out = { dataThrough: dataLast().label };
   const actual = actualFor(type, yr, mo, day, week);
   if (!actual) { out.actual = null; return out; }
   out.actual = actual.aqi; out.days = actual.days;
   if (actual.days < NEEDS_DAYS[type]) { out.forecast = null; out.why = 'part_period'; return out; }
-  const forecast = forecastWas(type, yr, mo, day, week);
+  let forecast = forecastWas(type, yr, mo, day, week);
+  /* Past the training history the running model's own number is the fair one:
+     it is forecasting a month it has never been shown. */
+  if (forecast == null && predicted > 0
+      && afterTraining(yr, type === 'year' ? 1 : (type === 'week' ? getWeekFactor(week).month : mo))) {
+    forecast = Math.round(predicted);
+    out.basis = 'live';
+  }
   if (forecast == null) {
     const tested = (ML_META.backtest || {}).years_tested || [];
     const first = tested.length ? Math.min(...tested) : null;
@@ -939,7 +997,7 @@ app.post('/api/predict-ml', (req,res) => {
     return res.json({ ...all[0], ...members, predicted:annual,
       month:null, targetYear:yr, type:'year', yearSoFar:null,
       historicalMean:globalStats.mean, historicalStd:globalStats.std,
-      check: checkFor('year', yr),
+      check: checkFor('year', yr, null, null, null, annual),
       ...rangeFor(annual, rangeModel.year) });
   }
 
@@ -950,7 +1008,7 @@ app.post('/api/predict-ml', (req,res) => {
     const base = predictML(wf.month, yr);
     const value = Math.max(1, Math.round(base.predicted*wf.factor));
     return res.json({ ...base, month:wf.month, targetYear:yr, type:'week', predicted:value,
-      check: checkFor('week', yr, wf.month, null, parseInt(week)),
+      check: checkFor('week', yr, wf.month, null, parseInt(week), value),
       ...rangeFor(value, Math.hypot(rangeModel.month[wf.month], rangeModel.week[wf.month])) });
   }
 
@@ -959,10 +1017,10 @@ app.post('/api/predict-ml', (req,res) => {
     const f = getDayFactor(m,parseInt(day));
     const value = Math.max(1, Math.round(base.predicted*f));
     return res.json({ ...base, month:m, targetYear:yr, type:'day', predicted:value,
-      check: checkFor('day', yr, m, parseInt(day)),
+      check: checkFor('day', yr, m, parseInt(day), null, value),
       ...rangeFor(value, Math.hypot(rangeModel.month[m], rangeModel.day[m])) });
   }
-  res.json({ ...base, month:m, targetYear:yr, type:'month', check: checkFor('month', yr, m) });
+  res.json({ ...base, month:m, targetYear:yr, type:'month', check: checkFor('month', yr, m, null, null, base.predicted) });
 });
 
 // ML forecast (12 months)
@@ -971,7 +1029,7 @@ app.get('/api/ml-forecast/:year', (req,res) => {
   const rows = Array.from({length:12},(_,i) => {
     const m  = i+1;
     const ml = predictML(m,yr);
-    return { month:m, monthName:MONTHS[m-1], ...ml, check: checkFor('month', yr, m) };
+    return { month:m, monthName:MONTHS[m-1], ...ml, check: checkFor('month', yr, m, null, null, ml.predicted) };
   });
   res.json(rows);
 });
@@ -1047,10 +1105,29 @@ app.get('/api/week', async (req,res) => {
     }
   }
 
+  /* Days two and three, where the model beat the decay rule in training. Each
+     replaces only its own day: a horizon whose weather forecast does not reach
+     is simply left on the decay, rather than the whole strip falling back. */
+  const multiDay = [];
+  if (anchor && anchor.kind === 'live' && days.length > 2) {
+    const ahead = await nextday.daysAheadAQI({ aqi: anchor.aqi, live: true });
+    for (const a of ahead) {
+      const i = days.findIndex(d => d.date === a.date);
+      if (i > 1) {
+        days[i] = { ...days[i], aqi: a.aqi, low: a.low, high: a.high,
+                    drivers: a.drivers, source: 'multiday-model' };
+        multiDay.push({ horizon: a.horizon, date: a.date, mae: a.accuracy.mae,
+                        versusRule: a.accuracy.versusRule });
+      }
+    }
+  }
+
   res.json({
-    days, anchored: !!anchor, anchor, persistence: PERSISTENCE, nextDay,
+    days, anchored: !!anchor, anchor, persistence: PERSISTENCE, nextDay, multiDay,
     source: anchor ? `${anchor.source}, fading to seasonal`
                      + (nextDay && nextDay.used ? '; tomorrow from the weather-driven model' : '')
+                     + (multiDay.length ? `; day${multiDay.length > 1 ? 's' : ''} `
+                        + multiDay.map(m => m.horizon).join(' and ') + ' too' : '')
                    : (ML_META.model_names ? 'ml_ensemble × day factor' : 'statistical × day factor'),
   });
 });
@@ -1464,6 +1541,18 @@ app.get('/api/backtest', (req,res) => {
     yearsTested: bt.years_tested || [], partYears: bt.part_year || [],
   } : null;
   res.json({ months, summary, note: bt.note || null });
+});
+
+/* Everything this site has measured and saved, oldest first. Two uses: it is
+   how the record gets off a host whose disk does not survive a deploy, and it
+   is the file to fold into the training data when enough days have built up. */
+app.get('/api/readings', (req, res) => {
+  const rows = readings.all();
+  res.json({ count: rows.length,
+             from: rows.length ? rows[0].date : null,
+             to:   rows.length ? rows[rows.length-1].date : null,
+             note: 'Measured readings saved by this site, one row per Delhi day, the last reading of each day. Not CPCB bulletin figures.',
+             rows });
 });
 
 // Ward-wise AQI: CPCB stations interpolated onto ward centres

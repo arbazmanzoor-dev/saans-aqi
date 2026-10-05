@@ -13,1300 +13,1192 @@
    "source": "observed"
   },
   "2025_4": {
-   "predicted": 205,
-   "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 210,
+   "source": "observed"
   },
   "2025_5": {
-   "predicted": 191,
-   "source": "model",
-   "rf": 190,
-   "gb": 191,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 170,
+   "source": "observed"
   },
   "2025_6": {
-   "predicted": 163,
-   "source": "model",
-   "rf": 162,
-   "gb": 163,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 141,
+   "source": "observed"
   },
   "2025_7": {
-   "predicted": 94,
-   "source": "model",
-   "rf": 95,
-   "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 78,
+   "source": "observed"
   },
   "2025_8": {
-   "predicted": 97,
-   "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 89,
+   "source": "observed"
   },
   "2025_9": {
-   "predicted": 100,
-   "source": "model",
-   "rf": 101,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 105,
+   "source": "observed"
   },
   "2025_10": {
-   "predicted": 212,
-   "source": "model",
-   "rf": 212,
-   "gb": 212,
-   "xgb": 213,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 223,
+   "source": "observed"
   },
   "2025_11": {
-   "predicted": 362,
-   "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 365,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 354,
+   "source": "observed"
   },
   "2025_12": {
-   "predicted": 326,
-   "source": "model",
-   "rf": 326,
-   "gb": 325,
-   "xgb": 326,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.8
+   "predicted": 351,
+   "source": "observed"
   },
   "2026_1": {
-   "predicted": 324,
-   "source": "model",
-   "rf": 324,
-   "gb": 324,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 308,
+   "source": "observed"
   },
   "2026_2": {
-   "predicted": 240,
-   "source": "model",
-   "rf": 240,
-   "gb": 240,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 233,
+   "source": "observed"
   },
   "2026_3": {
-   "predicted": 194,
-   "source": "model",
-   "rf": 194,
-   "gb": 193,
-   "xgb": 194,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 181,
+   "source": "observed"
   },
   "2026_4": {
-   "predicted": 204,
-   "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 178,
+   "source": "observed"
   },
   "2026_5": {
-   "predicted": 191,
-   "source": "model",
-   "rf": 190,
-   "gb": 191,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 157,
+   "source": "observed"
   },
   "2026_6": {
-   "predicted": 163,
-   "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 141,
+   "source": "observed"
   },
   "2026_7": {
-   "predicted": 94,
-   "source": "model",
-   "rf": 95,
-   "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 118,
+   "source": "observed"
   },
   "2026_8": {
-   "predicted": 97,
-   "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 96,
+   "source": "observed"
   },
   "2026_9": {
-   "predicted": 100,
-   "source": "model",
-   "rf": 101,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "predicted": 102,
+   "source": "observed"
   },
   "2026_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 212,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2026_11": {
-   "predicted": 362,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2026_12": {
-   "predicted": 326,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 325,
-   "xgb": 326,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 331,
+   "gb": 330,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_1": {
-   "predicted": 324,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 324,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 240,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 194,
-   "gb": 193,
-   "xgb": 194,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 191,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 101,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 212,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_11": {
-   "predicted": 362,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2027_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 325,
-   "xgb": 326,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.7
+   "rf": 331,
+   "gb": 330,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.5
   },
   "2028_1": {
-   "predicted": 324,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 324,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 194,
-   "gb": 193,
-   "xgb": 194,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 191,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 212,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_11": {
-   "predicted": 362,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2028_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 325,
-   "xgb": 326,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.6
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 324,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 194,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 191,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 212,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_11": {
-   "predicted": 362,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2029_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 326,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 323,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 191,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 211,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_11": {
-   "predicted": 362,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2030_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 325,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 323,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 190,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 211,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_11": {
-   "predicted": 361,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2031_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 325,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.5
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 323,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 190,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 211,
-   "gb": 212,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_11": {
-   "predicted": 361,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2032_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 325,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 323,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 190,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 211,
-   "gb": 211,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_11": {
-   "predicted": 361,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2033_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 325,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 323,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 204,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 190,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 211,
-   "gb": 211,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_11": {
-   "predicted": 361,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2034_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 325,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_1": {
-   "predicted": 323,
+   "predicted": 315,
    "source": "model",
-   "rf": 324,
-   "gb": 323,
-   "xgb": 323,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 316,
+   "gb": 315,
+   "xgb": 314,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_2": {
-   "predicted": 240,
+   "predicted": 227,
    "source": "model",
-   "rf": 240,
-   "gb": 239,
-   "xgb": 240,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 227,
+   "gb": 227,
+   "xgb": 227,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_3": {
-   "predicted": 193,
+   "predicted": 183,
    "source": "model",
-   "rf": 193,
-   "gb": 193,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 184,
+   "gb": 183,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_4": {
-   "predicted": 204,
+   "predicted": 201,
    "source": "model",
-   "rf": 203,
-   "gb": 204,
-   "xgb": 205,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 201,
+   "gb": 201,
+   "xgb": 201,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_5": {
-   "predicted": 191,
+   "predicted": 185,
    "source": "model",
-   "rf": 189,
-   "gb": 190,
-   "xgb": 193,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 186,
+   "gb": 186,
+   "xgb": 184,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_6": {
-   "predicted": 163,
+   "predicted": 155,
    "source": "model",
-   "rf": 162,
-   "gb": 162,
-   "xgb": 164,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 155,
+   "gb": 156,
+   "xgb": 154,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_7": {
-   "predicted": 94,
+   "predicted": 95,
    "source": "model",
    "rf": 95,
    "gb": 94,
-   "xgb": 94,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "xgb": 95,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_8": {
-   "predicted": 97,
+   "predicted": 94,
    "source": "model",
-   "rf": 97,
-   "gb": 97,
-   "xgb": 97,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 93,
+   "gb": 94,
+   "xgb": 94,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_9": {
-   "predicted": 100,
+   "predicted": 105,
    "source": "model",
-   "rf": 100,
-   "gb": 100,
-   "xgb": 100,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 105,
+   "gb": 106,
+   "xgb": 106,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_10": {
-   "predicted": 212,
+   "predicted": 223,
    "source": "model",
-   "rf": 211,
-   "gb": 211,
-   "xgb": 212,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 223,
+   "gb": 223,
+   "xgb": 223,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_11": {
-   "predicted": 361,
+   "predicted": 356,
    "source": "model",
-   "rf": 358,
-   "gb": 363,
-   "xgb": 364,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 354,
+   "gb": 358,
+   "xgb": 358,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   },
   "2035_12": {
-   "predicted": 325,
+   "predicted": 330,
    "source": "model",
-   "rf": 326,
-   "gb": 324,
-   "xgb": 325,
-   "confidence": 82,
-   "r2": 0.7791,
-   "level": 208.4
+   "rf": 331,
+   "gb": 331,
+   "xgb": 329,
+   "confidence": 83,
+   "r2": 0.8109,
+   "level": 206.6
   }
  },
  "weights": {
   "rf": 0.332,
   "gb": 0.333,
-  "xgb": 0.335
+  "xgb": 0.334
  },
  "features": [
   "month",
@@ -1320,7 +1212,7 @@
   "monsoon_onset",
   "monsoon_withdraw"
  ],
- "training_records": 51,
+ "training_records": 57,
  "pm25_monthly_avgs": {
   "1": 213.0,
   "2": 144.3,
@@ -1566,9 +1458,27 @@
   "2024_10": 234.0,
   "2024_11": 374.233,
   "2024_12": 293.839,
-  "2025_1": 305.677,
+  "2025_1": 305.71,
   "2025_2": 214.286,
-  "2025_3": 169.968
+  "2025_3": 169.968,
+  "2025_4": 210.4,
+  "2025_5": 169.548,
+  "2025_6": 140.7,
+  "2025_7": 78.355,
+  "2025_8": 88.645,
+  "2025_9": 105.2,
+  "2025_10": 223.355,
+  "2025_11": 354.067,
+  "2025_12": 351.161,
+  "2026_1": 307.581,
+  "2026_2": 232.929,
+  "2026_3": 180.548,
+  "2026_4": 178.367,
+  "2026_5": 156.645,
+  "2026_6": 140.7,
+  "2026_7": 117.806,
+  "2026_8": 95.548,
+  "2026_9": 101.533
  },
  "diwali_dates": {
   "2015": [
@@ -1664,44 +1574,46 @@
  "walk_forward": {
   "per_model": {
    "rf": {
-    "mae": 33.0,
-    "mape": 18.44,
-    "r2": 0.7777
+    "mae": 29.8,
+    "mape": 16.68,
+    "r2": 0.8097
    },
    "gb": {
-    "mae": 32.9,
-    "mape": 18.4,
-    "r2": 0.7794
+    "mae": 29.7,
+    "mape": 16.67,
+    "r2": 0.811
    },
    "xgb": {
-    "mae": 32.7,
-    "mape": 18.32,
-    "r2": 0.7803
+    "mae": 29.6,
+    "mape": 16.6,
+    "r2": 0.8118
    }
   },
   "blend": {
-   "mae": 32.8,
-   "mape": 18.39,
-   "r2": 0.7791
+   "mae": 29.7,
+   "mape": 16.65,
+   "r2": 0.8109
   },
   "climatology_baseline": {
-   "mae": 32.9,
-   "mape": 18.47,
-   "r2": 0.7789
+   "mae": 29.8,
+   "mape": 16.72,
+   "r2": 0.8106
   },
   "mape_by_year": {
    "2020": 30.7,
    "2021": 23.4,
    "2022": 16.2,
    "2023": 10.1,
-   "2024": 11.5
+   "2024": 11.5,
+   "2025": 8.0
   },
   "years_tested": [
    2020,
    2021,
    2022,
    2023,
-   2024
+   2024,
+   2025
   ],
   "note": "Each year forecast from earlier years only. The ensemble matches the seasonal-climatology baseline rather than beating it: at a one-year-plus horizon there is no input beyond season and level."
  },
@@ -1716,17 +1628,18 @@
   "2022": 209.4,
   "2023": 203.8,
   "2024": 209.2,
-  "2025": 189.8
+  "2025": 200.9,
+  "2026": 202.5
  },
  "level_model": {
-  "slope_per_year": -0.128,
-  "anchor_year": 2024,
-  "anchor_level": 209.0,
+  "slope_per_year": 0.019,
+  "anchor_year": 2025,
+  "anchor_level": 206.5,
   "damping": 0.8,
   "years_used": 6
  },
  "history_note": "2015-2019 from data/delhi_daily_2015_2020.csv (city_day table compiled from CPCB station data); 2020-2025 from the CPCB workbooks.",
- "generated": "2026-10-04",
+ "generated": "2026-10-05",
  "backtest": {
   "months": {
    "2020_1": {
@@ -2032,19 +1945,115 @@
    "2025_1": {
     "predicted": 320,
     "actual": 305.7,
-    "climatology": 319,
-    "part_year": true
+    "climatology": 319
    },
    "2025_2": {
     "predicted": 247,
     "actual": 214.3,
-    "climatology": 250,
-    "part_year": true
+    "climatology": 250
    },
    "2025_3": {
     "predicted": 186,
     "actual": 170.0,
-    "climatology": 187,
+    "climatology": 187
+   },
+   "2025_4": {
+    "predicted": 191,
+    "actual": 210.4,
+    "climatology": 189
+   },
+   "2025_5": {
+    "predicted": 187,
+    "actual": 169.5,
+    "climatology": 183
+   },
+   "2025_6": {
+    "predicted": 158,
+    "actual": 140.7,
+    "climatology": 157
+   },
+   "2025_7": {
+    "predicted": 94,
+    "actual": 78.4,
+    "climatology": 95
+   },
+   "2025_8": {
+    "predicted": 93,
+    "actual": 88.6,
+    "climatology": 93
+   },
+   "2025_9": {
+    "predicted": 106,
+    "actual": 105.2,
+    "climatology": 106
+   },
+   "2025_10": {
+    "predicted": 226,
+    "actual": 223.4,
+    "climatology": 228
+   },
+   "2025_11": {
+    "predicted": 365,
+    "actual": 354.1,
+    "climatology": 364
+   },
+   "2025_12": {
+    "predicted": 333,
+    "actual": 351.2,
+    "climatology": 335
+   },
+   "2026_1": {
+    "predicted": 316,
+    "actual": 307.6,
+    "climatology": 315,
+    "part_year": true
+   },
+   "2026_2": {
+    "predicted": 234,
+    "actual": 232.9,
+    "climatology": 236,
+    "part_year": true
+   },
+   "2026_3": {
+    "predicted": 189,
+    "actual": 180.5,
+    "climatology": 191,
+    "part_year": true
+   },
+   "2026_4": {
+    "predicted": 205,
+    "actual": 178.4,
+    "climatology": 206,
+    "part_year": true
+   },
+   "2026_5": {
+    "predicted": 186,
+    "actual": 156.6,
+    "climatology": 184,
+    "part_year": true
+   },
+   "2026_6": {
+    "predicted": 157,
+    "actual": 140.7,
+    "climatology": 157,
+    "part_year": true
+   },
+   "2026_7": {
+    "predicted": 90,
+    "actual": 117.8,
+    "climatology": 91,
+    "part_year": true
+   },
+   "2026_8": {
+    "predicted": 95,
+    "actual": 95.5,
+    "climatology": 96,
+    "part_year": true
+   },
+   "2026_9": {
+    "predicted": 101,
+    "actual": 101.5,
+    "climatology": 100,
     "part_year": true
    }
   },
@@ -2053,10 +2062,11 @@
    2021,
    2022,
    2023,
-   2024
+   2024,
+   2025
   ],
   "part_year": [
-   2025
+   2026
   ],
   "note": "Out-of-sample: each year was forecast from earlier years only, so these are the errors a reader would have seen at the time. Training years (before the first tested year) have no entry, because the model had already seen them and the error would flatter it."
  }

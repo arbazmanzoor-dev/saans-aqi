@@ -116,6 +116,7 @@ async function loadToday() {
   state.live = live;
   state.week = week.days || [];
   state.weekNext = week.nextDay || null;
+  state.weekAhead = week.multiDay || [];
   state.anchor = week.anchor || null;
   state.weekSel = 0;
   renderToday();
@@ -219,19 +220,30 @@ function renderToday() {
       <span class="wd">${day.weekday}</span>
       <span class="bar" style="height:${h}px;background:${db.color}"></span>
       <span class="v">${day.aqi}</span>
-      ${day.source === 'nextday-model' ? '<span class="mk" title="from the weather-driven next-day model"></span>' : ''}
+      ${day.source === 'nextday-model' || day.source === 'multiday-model'
+          ? `<span class="mk" title="from the weather-driven model"></span>` : ''}
     </button>`;
   }).join('');
 
-  /* The strip mixes two methods once the next-day model runs — say so. */
+  /* The strip mixes methods — which days are modelled depends on how far the
+     weather forecast reaches, so the note is built from what actually ran. */
   const note = document.getElementById('weekNote');
   const nx = state.weekNext;
+  const ahead = state.weekAhead || [];
   note.classList.toggle('hidden', !(nx && nx.used));
-  if (nx && nx.used)
+  if (nx && nx.used) {
+    const modelled = 1 + ahead.length;
+    const worst = ahead.length ? ahead[ahead.length - 1] : null;
     note.textContent = (state.anchor && state.anchor.test ? 'TEST DATA. ' : '')
-      + `Tomorrow (marked) comes from the weather-driven next-day model — typically out by `
-      + `about ${Math.round(nx.mae)} AQI against ${Math.round(nx.versusRule)} for the older rule. `
-      + `The days after it fade from today's reading to the seasonal average.`;
+      + (modelled === 1
+          ? `Tomorrow (marked) comes from the weather-driven model — typically out by about `
+            + `${Math.round(nx.mae)} AQI against ${Math.round(nx.versusRule)} for the older rule. `
+          : `The next ${modelled} days (marked) come from the weather-driven model — typically out `
+            + `by about ${Math.round(nx.mae)} AQI tomorrow, rising to ${Math.round(worst.mae)} by day `
+            + `${worst.horizon}, against ${Math.round(nx.versusRule)} and ${Math.round(worst.versusRule)} `
+            + `for the older rule. `)
+      + `The days after fade from today's reading to the seasonal average.`;
+  }
   document.querySelectorAll('.daycol').forEach(btn => btn.addEventListener('click', () => {
     state.weekSel = +btn.dataset.i;
     renderToday();
@@ -446,16 +458,19 @@ function renderCheck(c) {
       : c.why === 'training_year'
       ? "this period is inside the model's training years, so there is no honest forecast to set "
         + 'against it'
-      : 'this period has not been through the walk-forward yet';
+      : 'the walk-forward only covers complete past years, so this one has no forecast on record';
     box.innerHTML = `Measured so far: <b>${c.actual}</b><span class="none"> — ${why}.</span>`;
     return;
   }
   const sign = c.error > 0 ? '+' : c.error < 0 ? '\u2212' : '';
+  const measured = c.days === 1 ? 'the measurement is that day\u2019s reading'
+                                : `the measurement averages the ${c.days} days on file`;
+  const how = c.basis === 'live'
+    ? 'That is the model as it stands, on a date later than any data it was trained on'
+    : 'That forecast was made from earlier years only';
   box.innerHTML = `Actually came in at <b>${c.actual}</b> &nbsp;·&nbsp; the forecast was off by `
     + `<b style="color:${errTone(c.pct)}">${sign}${Math.abs(c.error)}</b> (${c.pct}%)`
-    + `<br><span class="none">That forecast was made from earlier years only — `
-    + `${c.days === 1 ? 'the measurement is that day\u2019s reading' :
-         `the measurement averages the ${c.days} days on file`}.</span>`;
+    + `<br><span class="none">${how} — ${measured}.</span>`;
 }
 
 /* ═══ TRACK RECORD ═══
