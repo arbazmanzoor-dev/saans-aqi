@@ -27,13 +27,22 @@ let pool = null, sqlite = null;
 
 if (KIND === 'postgres') {
   const { Pool } = require('pg');
-  /* Neon and most hosted Postgres require TLS; honour an explicit sslmode in
-     the URL and default to on, because a plaintext database connection across
-     the internet is not a default anyone should inherit by accident. */
-  const explicit = /[?&]sslmode=/.test(URL);
+  /* TLS, verified, and pinned to that meaning. A plaintext database connection
+     across the internet is not a default anyone should inherit by accident —
+     but `sslmode=require`, which is what Neon hands you, is the subtler trap:
+     node-postgres currently treats it as verify-full and warns that a future
+     major version will downgrade it to libpq semantics, where the certificate
+     is encrypted but never checked. Silently losing certificate verification
+     on a dependency bump is exactly the kind of change nobody notices, so the
+     strict meaning is written out here instead of inherited. Anyone who really
+     wants it off can still say so in the URL. */
+  const mode = (/[?&]sslmode=([^&]+)/.exec(URL) || [])[1];
+  const connectionString = mode === 'require'
+    ? URL.replace(/([?&]sslmode=)require\b/, '$1verify-full') : URL;
+  const relaxed = mode === 'disable' || mode === 'no-verify' || mode === 'prefer';
   pool = new Pool({
-    connectionString: URL,
-    ...(explicit ? {} : { ssl: { rejectUnauthorized: true } }),
+    connectionString,
+    ...(relaxed || mode ? {} : { ssl: { rejectUnauthorized: true } }),
     max: 3,                       // a small free instance, not a fleet
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
