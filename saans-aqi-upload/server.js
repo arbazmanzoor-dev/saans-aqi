@@ -11,6 +11,8 @@ const Anthropic = require('@anthropic-ai/sdk');
 const alerts  = require('./alerts');
 const wards   = require('./wards');
 const readings = require('./readings.js');
+const waqi     = require('./waqi.js');
+const db       = require('./db.js');
 const nextday = require('./nextday');
 const path    = require('path');
 const fs      = require('fs');
@@ -599,55 +601,8 @@ const testStations = () => TEST_SITES.map(([name, lat, lon, k]) => ({
 if (TEST_AQI) console.log(`🧪 TEST MODE — SAANS_TEST_AQI=${TEST_AQI}. Readings are INVENTED, `
   + 'flagged test:true, and cannot trigger an alert. Unset the variable for real behaviour.');
 
-/* CPCB's Delhi stations as WAQI numbers them. Named slugs rot — delhi/r-k-puram
-   and delhi/dwarka-sector-8 both answered "Unknown station" by Oct 2026 — while
-   the uids kept working, so the uids are what we ask for. Checked 4 Oct 2026.
-   The US Embassy site (@7024) is left out: it stopped reporting in 2025. */
-const DELHI_STATIONS = [
-  '@2553','@2554','@2556','@10111','@10112','@10113','@10114',
-  '@10115','@10118','@10121','@10124','@10704','@10705',
-];
-/* WAQI reports the US EPA AQI, not India's National AQI, and the two disagree
-   by enough to change what a reader is told: Mandir Marg on 4 Oct 2026 read 114
-   on WAQI and 131 on CPCB's scale, with the dominant pollutant flipping from
-   PM2.5 to PM10. Feeding the US number to a model trained on NAQI would be a
-   straight scale error, so each pollutant's sub-index is inverted back to a
-   concentration through the US breakpoints aqicn documents, then rated again on
-   CPCB's. Two caveats, both deliberate: aqicn's published table is the pre-2024
-   EPA one (the revision moved only the bands below 35.4 and above 125.4, and
-   the 100-150 band where Delhi often sits is identical either way), and only
-   PM2.5 and PM10 are converted, because the gases are rated on 1- and 8-hour
-   maxima here and 24-hour means there, which is not a conversion but a guess.
-   In Delhi PM leads the index virtually always. Worth re-checking against a
-   CPCB station once data.gov.in answers again. */
-const US_BP = {
-  'PM2.5': [0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4],
-  'PM10':  [0, 54,   154,  254,  354,   424,   604  ],
-};
-const US_INDEX = [0, 50, 100, 150, 200, 300, 500];
-function usConcentration(sub, bp) {
-  for (let k = 1; k < US_INDEX.length; k++)
-    if (sub <= US_INDEX[k])
-      return bp[k-1] + (sub - US_INDEX[k-1]) * (bp[k] - bp[k-1]) / (US_INDEX[k] - US_INDEX[k-1]);
-  return bp[bp.length-1];
-}
-/* null when the station carries neither PM reading — NAQI without PM is not a
-   number this app should publish. */
-function naqiFromWaqi(iaqi) {
-  let worst = null, lead = null;
-  for (const [pol, key] of [['PM2.5', 'pm25'], ['PM10', 'pm10']]) {
-    const sub = Number(iaqi && iaqi[key] && iaqi[key].v);
-    if (!Number.isFinite(sub) || sub < 0) continue;
-    const naqi = wards.subIndex(usConcentration(sub, US_BP[pol]), wards.BREAKPOINTS[pol]);
-    if (worst === null || naqi > worst) { worst = naqi; lead = pol; }
-  }
-  return worst === null ? null : { aqi: Math.round(worst), dominant: lead };
-}
-
 let rtCache = null, rtCacheTime = 0;
 const RT_CACHE_MS = 30*60*1000;
-const WAQI_STALE_MS = 3*3600*1000;   // past this a reading is history, not "now"
-const WAQI_MIN      = 3;             // fresh stations before it counts as a city reading
 
 // Derived from the loaded sheets so it can never drift from the data again.
 const MONTH_AVGS = Object.fromEntries(
@@ -657,11 +612,15 @@ const MONTH_AVGS = Object.fromEntries(
    reader their AQI. It is logged the first time so it cannot fail silently. */
 let noteFailed = false;
 function noteReading(reading) {
-  const r = readings.record(reading);
-  if (r && r.error && !noteFailed) {
-    noteFailed = true;
-    console.error(`⚠️  could not save today's reading: ${r.error}`);
-  }
+  readings.record(reading).then(r => {
+    if (r && r.error && !noteFailed) {
+      noteFailed = true;
+      console.error(`⚠️  could not save today's reading: ${r.error}`);
+    }
+    if (r && !r.error) readings.refresh();      // so today answers the forecast page at once
+  }).catch(e => {
+    if (!noteFailed) { noteFailed = true; console.error(`⚠️  could not save today's reading: ${e.message}`); }
+  });
 }
 
 function buildFallback(note) {
@@ -703,53 +662,30 @@ async function fetchStations() {
   }
   if (WAQI_TOKEN === 'demo') return buildFallback();
   try {
-    const results = await Promise.allSettled(
-      DELHI_STATIONS.map(async station => {
-        const ctrl  = new AbortController();
-        const timer = setTimeout(()=>ctrl.abort(), 6000);
-        try {
-          const r = await fetch(`https://api.waqi.info/feed/${station}/?token=${WAQI_TOKEN}`,{signal:ctrl.signal});
-          clearTimeout(timer);
-          return r.json();
-        } catch(e) { clearTimeout(timer); throw e; }
-      })
-    );
-    /* WAQI relays CPCB, so when CPCB's pipeline stalls its Delhi stations keep
-       serving yesterday's number behind a cheerful HTTP 200 — on 4 Oct 2026, 13
-       of 14 were 26 to 33 hours behind, one of them 3.5 months. Averaging those
-       would publish a day-old number as Delhi's air now, and hand it to the
-       next-day model as today's anchor. So each reading is judged on its own
-       timestamp, and too few fresh ones means no live reading at all rather
-       than a confident wrong one. */
-    const now = Date.now();
-    const seen = results
-      .filter(r=>r.status==='fulfilled'&&r.value?.status==='ok')
-      .map(r => {
-        const d = r.value.data, obs = Date.parse(d.time?.iso || '');
-        const own = naqiFromWaqi(d.iaqi);          // rated on India's scale, not America's
-        return { station:(d.city?.name||'Delhi').replace(/,\s*India$/,''),
-                 aqi: own ? own.aqi : NaN, dominant: own ? own.dominant : null,
-                 usAqi: parseInt(d.aqi), observed:d.time?.iso || null,
-                 age: Number.isFinite(obs) ? now - obs : Infinity };
-      })
-      .filter(r=>!isNaN(r.aqi)&&r.aqi>0);
-    const fresh = seen.filter(r => r.age <= WAQI_STALE_MS);
-    if (fresh.length < WAQI_MIN) {
-      const hrs = seen.length ? Math.round(Math.min(...seen.map(r=>r.age))/3600000) : 0;
+    /* The same stations the ward map uses, rated on India's scale and already
+       filtered for staleness — WAQI relays CPCB, so when CPCB's pipeline stalls
+       its stations keep serving yesterday's number behind a cheerful HTTP 200.
+       On 4 Oct 2026 twelve of thirteen were a day or more behind. */
+    const relay = await waqi.stations(WAQI_TOKEN);
+    if (relay.stations.length < waqi.MIN_FRESH) {
+      const hrs = relay.freshest != null ? Math.round(relay.freshest / 3600000) : 0;
       /* Two different faults, said differently: nothing current (CPCB is behind),
          or a couple current but too few to call an average a city reading. */
       return buildFallback(
-        !seen.length    ? 'no WAQI station answered'
-        : !fresh.length ? `all ${seen.length} WAQI stations are behind, the freshest by ${hrs}h, `
-                        + "so CPCB's feed has stalled"
-        : `only ${fresh.length} of ${seen.length} WAQI stations are current, `
-          + `fewer than the ${WAQI_MIN} a city average needs`);
+        !relay.answered        ? 'no WAQI station answered'
+        : !relay.stations.length ? `all ${relay.answered} WAQI stations are behind, the freshest by `
+                                 + `${hrs}h, so CPCB's feed has stalled`
+        : `only ${relay.stations.length} of ${relay.answered} WAQI stations are current, `
+          + `fewer than the ${waqi.MIN_FRESH} a city average needs`);
     }
-    const avgAqi = Math.round(fresh.reduce((s,r)=>s+r.aqi,0)/fresh.length);
+    const fresh = relay.stations;
+    const avgAqi = Math.round(fresh.reduce((s, r) => s + r.aqi, 0) / fresh.length);
+    const newest = Math.max(...fresh.map(r => Date.parse(r.updated) || 0));
     rtCache = { success:true, aqi:avgAqi,
-      stations: fresh.map(({station,aqi,dominant,observed})=>({station,aqi,dominant,observed})),
+      stations: fresh.map(({ name, aqi, dominant, updated }) =>
+        ({ station: name, aqi, dominant, observed: updated })),
       count: fresh.length,
-      updated: new Date(now - Math.min(...fresh.map(r=>r.age))).toISOString(),
+      updated: new Date(newest || Date.now()).toISOString(),
       source: `live · ${fresh.length} WAQI station${fresh.length===1?'':'s'} (CPCB via aqicn.org, rated on India's scale)`,
       band: (v => (BANDS.find(([max]) => v <= max) || BANDS[5])[1])(avgAqi) };
     rtCacheTime = Date.now();
@@ -1186,11 +1122,11 @@ async function alertBasis() {
            stations: rt.stations || [], updated: rt.updated };
 }
 
-app.post('/api/alerts/subscribe', (req,res) => {
+app.post('/api/alerts/subscribe', async (req,res) => {
   const { phone, language, threshold } = req.body || {};
-  const r = alerts.subscribe(phone, language, threshold);
+  const r = await alerts.subscribe(phone, language, threshold);
   if (!r.ok) return res.status(422).json({ success:false, error:r.error });
-  res.json({ success:true, already:r.already, subscribers: alerts.countSubscribers(),
+  res.json({ success:true, already:r.already, subscribers: await alerts.countSubscribers(),
              note:'Your number is stored only as a salted one-way hash.' });
 });
 
@@ -1204,12 +1140,12 @@ app.get('/api/alerts/preview', async (req,res) => {
   const composed = alerts.compose(aqi, band, language);
   res.json({ success:true, aqi, band, ...composed,
              warranted: alerts.warranted(aqi), alertFrom: alerts.ALERT_FROM,
-             reach: alerts.reach(composed.language, aqi),
+             reach: await alerts.reach(composed.language, aqi),
              provider: alerts.provider(), dataBasis: b.basis, live: b.live });
 });
 
-app.get('/api/alerts/log', (req,res) =>
-  res.json({ broadcasts: alerts.listBroadcasts(parseInt(req.query.limit) || 25) }));
+app.get('/api/alerts/log', async (req,res) =>
+  res.json({ broadcasts: await alerts.listBroadcasts(parseInt(req.query.limit) || 25) }));
 
 /* A dry run records what would have gone out. A real send needs an operator
    token, a live reading and a configured gateway — and even then returns 501,
@@ -1221,7 +1157,7 @@ app.post('/api/alerts/broadcast', async (req,res) => {
   const aqi = Number.isInteger(override) ? override : b.aqi;
   const band = bandLabel(aqi);
   const composed = alerts.compose(aqi, band, language);
-  const reach = alerts.reach(composed.language, aqi);
+  const reach = await alerts.reach(composed.language, aqi);
 
   if (!dry_run) {
     const want = process.env.SAANS_BROADCAST_TOKEN;
@@ -1255,7 +1191,7 @@ app.post('/api/alerts/broadcast', async (req,res) => {
                 message: composed.message, segments: composed.segments,
                 encoding: composed.encoding, recipients: reach.targeted,
                 status:'simulated', dry_run:true, basis: b.basis };
-  alerts.logBroadcast(rec);
+  await alerts.logBroadcast(rec);
   res.status(202).json({ ...rec, success:true, dry_run:true, provider:'none (dry run)',
     reach, warranted: alerts.warranted(aqi),
     segmentsBilled: composed.segments * reach.targeted });
@@ -1546,8 +1482,8 @@ app.get('/api/backtest', (req,res) => {
 /* Everything this site has measured and saved, oldest first. Two uses: it is
    how the record gets off a host whose disk does not survive a deploy, and it
    is the file to fold into the training data when enough days have built up. */
-app.get('/api/readings', (req, res) => {
-  const rows = readings.all();
+app.get('/api/readings', async (req, res) => {
+  const rows = await readings.all();
   res.json({ count: rows.length,
              from: rows.length ? rows[0].date : null,
              to:   rows.length ? rows[rows.length-1].date : null,
@@ -1581,4 +1517,12 @@ app.listen(PORT, err => {
     process.exit(1);
   }
   console.log(`✅ Saans AQI running on http://localhost:${PORT}`);
+  /* Saved readings are held in memory so the prediction routes stay synchronous;
+     prime them at boot and keep them warm. Failures are logged by refresh()
+     itself — the site serves the workbook history regardless. */
+  readings.refresh().then(() => {
+    const n = readings.count();
+    console.log(`💾 Storage: ${db.KIND}${n ? ` — ${n} saved reading${n === 1 ? '' : 's'}` : ' — no saved readings yet'}`);
+  });
+  setInterval(() => readings.refresh(), readings.CACHE_MS).unref();
 });

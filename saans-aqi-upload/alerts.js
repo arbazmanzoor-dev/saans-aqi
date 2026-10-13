@@ -6,25 +6,28 @@
    hashes, and nothing ever recorded as sent when it was not.
    ═══════════════════════════════════════════════════════════ */
 const crypto = require('crypto');
-const path   = require('path');
-const fs     = require('fs');
-const { DatabaseSync } = require('node:sqlite');
+const db     = require('./db.js');
 
-const DB_PATH = process.env.SAANS_DB || path.join(__dirname, 'data', 'saans.db');
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-const db = new DatabaseSync(DB_PATH);
-db.exec(`
+/* The schemas differ in one word — SERIAL against AUTOINCREMENT — so they are
+   written out rather than generated, where a reader can see both. */
+const DDL_PG = `
 CREATE TABLE IF NOT EXISTS subscribers (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   ts TEXT NOT NULL, phone_hash TEXT UNIQUE NOT NULL,
   language TEXT NOT NULL, threshold INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS broadcasts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   job_id TEXT UNIQUE NOT NULL, ts TEXT NOT NULL,
   aqi INTEGER, band TEXT, language TEXT, message TEXT,
   segments INTEGER, encoding TEXT, recipients INTEGER,
-  status TEXT NOT NULL, dry_run INTEGER NOT NULL, basis TEXT);
-`);
+  status TEXT NOT NULL, dry_run INTEGER NOT NULL, basis TEXT);`;
+const DDL_SQLITE = DDL_PG.replace(/SERIAL PRIMARY KEY/g, 'INTEGER PRIMARY KEY AUTOINCREMENT');
+
+let ready = null;
+function init() {
+  if (!ready) ready = db.exec(DDL_PG, DDL_SQLITE);
+  return ready;
+}
 
 const now = () => new Date().toISOString();
 
@@ -95,45 +98,52 @@ const ALERT_FROM = 200;
 const warranted = aqi => aqi > ALERT_FROM;
 
 /* ── Subscribers ── */
-function subscribe(msisdn, language, threshold) {
+async function subscribe(msisdn, language, threshold) {
   const phone = normalisePhone(msisdn);
   if (!phone) return { ok:false, error:'That does not look like an Indian mobile number.' };
   const lang = TEMPLATE[language] ? language : 'en';
   const at = Number.isInteger(threshold) ? threshold : 300;
   try {
-    db.prepare(`INSERT INTO subscribers (ts, phone_hash, language, threshold)
-                VALUES (?, ?, ?, ?)`).run(now(), hashPhone(phone), lang, at);
+    await init();
+    await db.run(`INSERT INTO subscribers (ts, phone_hash, language, threshold)
+                  VALUES (?, ?, ?, ?)`, [now(), hashPhone(phone), lang, at]);
     return { ok:true, already:false };
   } catch (e) {
-    if (String(e.message).includes('UNIQUE')) return { ok:true, already:true };
+    if (db.isDuplicate(e)) return { ok:true, already:true };
     throw e;
   }
 }
 
-const countSubscribers = () =>
-  db.prepare('SELECT COUNT(*) n FROM subscribers').get().n;
+async function countSubscribers() {
+  await init();
+  return db.num((await db.get('SELECT COUNT(*) n FROM subscribers')).n);
+}
 
 /* One message carries one language, so subscribers in the others are counted,
    never quietly counted as reached. */
-function reach(language, aqi) {
-  const rows = db.prepare(
-    `SELECT language, COUNT(*) n FROM subscribers WHERE threshold <= ? GROUP BY language`
-  ).all(aqi);
+async function reach(language, aqi) {
+  await init();
+  const rows = (await db.all(
+    `SELECT language, COUNT(*) n FROM subscribers WHERE threshold <= ? GROUP BY language`, [aqi]
+  )).map(r => ({ language: r.language, n: db.num(r.n) }));
   const byLang = Object.fromEntries(rows.map(r => [r.language, r.n]));
   const eligible = rows.reduce((s,r) => s + r.n, 0);
   return { targeted: byLang[language] || 0, eligible, byLanguage: byLang,
-           registered: countSubscribers() };
+           registered: await countSubscribers() };
 }
 
-function logBroadcast(rec) {
-  db.prepare(`INSERT INTO broadcasts
+async function logBroadcast(rec) {
+  await init();
+  await db.run(`INSERT INTO broadcasts
     (job_id, ts, aqi, band, language, message, segments, encoding, recipients, status, dry_run, basis)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, [
     rec.job_id, rec.ts, rec.aqi, rec.band, rec.language, rec.message,
-    rec.segments, rec.encoding, rec.recipients, rec.status, rec.dry_run ? 1 : 0, rec.basis);
+    rec.segments, rec.encoding, rec.recipients, rec.status, rec.dry_run ? 1 : 0, rec.basis]);
 }
-const listBroadcasts = (limit = 25) =>
-  db.prepare('SELECT * FROM broadcasts ORDER BY id DESC LIMIT ?').all(limit);
+async function listBroadcasts(limit = 25) {
+  await init();
+  return db.all('SELECT * FROM broadcasts ORDER BY id DESC LIMIT ?', [limit]);
+}
 
 /* Which gateway, if any, is configured. Nothing here sends — this only reports
    whether a real send could even be attempted. */
@@ -143,5 +153,5 @@ function provider() {
   return null;
 }
 
-module.exports = { compose, smsParts, warranted, ALERT_FROM, subscribe, countSubscribers,
+module.exports = { init, compose, smsParts, warranted, ALERT_FROM, subscribe, countSubscribers,
                    reach, logBroadcast, listBroadcasts, provider, normalisePhone, now };

@@ -238,9 +238,6 @@ async function wardAQI() {
       stations,
       wards: wards.map(w => ({ id: w.id, name: w.name, includes: w.includes, ...interpolate(w, stations) })) };
   }
-  if (!key)
-    return { ...base, available: false, reason: 'no_key',
-             message: 'Ward-wise AQI needs CPCB station readings. Set DATA_GOV_IN_KEY (free at data.gov.in) and restart.' };
   if (!wards || !wards.length)
     return { ...base, available: false, reason: 'no_boundaries',
              message: `No ward boundaries at ${path.relative(__dirname, WARDS_FILE)}.` };
@@ -251,35 +248,75 @@ async function wardAQI() {
   const hold = cache && (cache.available ? CACHE_MS
              : cache.transient && failStreak < PATIENCE ? BLIP_MS : RETRY_MS);
   if (cache && Date.now() - cacheTime < hold) return cache;
-  try {
-    const stations = stationsFrom(await fetchRecords(key));
-    failStreak = 0; failSince = 0;
-    if (stations.length < 3) {
-      cache = { ...base, available: false, reason: 'too_few_stations', stationCount: stations.length,
-                message: `Only ${stations.length} Delhi station${stations.length === 1 ? '' : 's'} reporting enough pollutants right now.` };
-    } else {
-      const newest = Math.max(...stations.map(s => Date.parse(s.updated)));
-      cache = { ...base, available: true,
-        updated: new Date(newest).toISOString(),
-        source: 'CPCB real-time feed via data.gov.in',
-        method: `National AQI per station from 24-hour means of PM2.5, PM10, NO₂, SO₂ and NH₃; each area interpolated from its ${NEIGHBOURS} nearest stations (inverse-distance weighting)`,
-        stations,
-        wards: wards.map(w => ({ id: w.id, name: w.name, includes: w.includes, ...interpolate(w, stations) })) };
+
+  const spread = (stations, source, method, extra = {}) => {
+    const newest = Math.max(...stations.map(s => Date.parse(s.updated) || 0));
+    return { ...base, available: true,
+      updated: new Date(newest || Date.now()).toISOString(),
+      source, method, stations,
+      wards: wards.map(w => ({ id: w.id, name: w.name, includes: w.includes, ...interpolate(w, stations) })),
+      ...extra };
+  };
+
+  /* CPCB first, always: fifty-eight stations against WAQI's thirteen, on India's
+     own scale with no conversion in between. The fallback exists because that
+     feed has been unreachable for weeks at a time — down entirely for seventeen
+     days, then answering from India while refusing this app's host. */
+  let cpcbProblem = key ? null : 'no DATA_GOV_IN_KEY is set';
+  let transient = false, tail = '';
+  if (key) {
+    try {
+      const stations = stationsFrom(await fetchRecords(key));
+      failStreak = 0; failSince = 0;
+      if (stations.length >= 3) {
+        cache = spread(stations, 'CPCB real-time feed via data.gov.in',
+          `National AQI per station from 24-hour means of PM2.5, PM10, NO₂, SO₂ and NH₃; `
+          + `each area interpolated from its ${NEIGHBOURS} nearest stations (inverse-distance weighting)`);
+        cacheTime = Date.now();
+        return cache;
+      }
+      cpcbProblem = `only ${stations.length} CPCB station${stations.length === 1 ? '' : 's'} `
+                  + 'reporting enough pollutants';
+    } catch (e) {
+      failStreak++;
+      if (!failSince) failSince = Date.now();
+      cpcbProblem = e.message;
+      transient = !!e.transient;
+      /* Name the feed as theirs: a reader seeing a bare error code assumes the
+         fault is this site's, or their own connection. */
+      const slow = failStreak >= PATIENCE;
+      tail = !transient ? ''
+        : slow ? ` CPCB's feed has been unavailable for ${spanText(Date.now() - failSince)}`
+               + ` — the outage is at their end, not this site's. Still trying, now every five minutes.`
+               : ` The outage is at their end, not this site's. Trying again in 30 seconds.`;
     }
-  } catch (e) {
-    failStreak++;
-    if (!failSince) failSince = Date.now();
-    /* Name the feed as theirs: a reader seeing a bare error code assumes the
-       fault is this site's, or their own connection. */
-    const slow = failStreak >= PATIENCE;
-    const tail = !e.transient ? ''
-      : slow ? ` CPCB's feed has been unavailable for ${spanText(Date.now() - failSince)}`
-             + ` — the outage is at their end, not this site's. Still trying, now every five minutes.`
-             : ` The outage is at their end, not this site's. Trying again in 30 seconds.`;
-    cache = { ...base, available: false, reason: 'feed_error', transient: !!e.transient,
-              downSince: new Date(failSince).toISOString(), failures: failStreak,
-              message: `${e.message}.${tail}` };
   }
+
+  /* Second best, and said so on the card: the same CPCB stations relayed by
+     aqicn.org, fewer of them, and converted from the US scale they arrive on. */
+  const relay = await require('./waqi.js').stations();
+  if (relay.stations.length >= 3) {
+    cache = spread(relay.stations,
+      'WAQI relay of CPCB stations (aqicn.org), rated on India\'s scale',
+      `National AQI per station from PM2.5 and PM10, converted from WAQI's US-scale `
+      + `sub-indices; each area interpolated from its ${NEIGHBOURS} nearest stations `
+      + '(inverse-distance weighting)',
+      { fallback: true, stationSource: 'waqi',
+        note: `CPCB's own feed is unavailable (${cpcbProblem}), so this map uses the `
+            + `${relay.stations.length} stations WAQI relays rather than CPCB's fuller set. `
+            + 'Fewer stations means a coarser map — the distance to the nearest one is '
+            + 'given for each area.' });
+    cacheTime = Date.now();
+    return cache;
+  }
+
+  const relayWhy = relay.reason === 'no_token' ? 'no WAQI_TOKEN is set'
+    : relay.reason === 'no_answer' ? 'no WAQI station answered'
+    : `only ${relay.stations.length} of ${relay.answered} WAQI stations are current`;
+  cache = { ...base, available: false, reason: 'feed_error', transient,
+            downSince: failSince ? new Date(failSince).toISOString() : null,
+            failures: failStreak,
+            message: `${cpcbProblem}.${tail} The fallback could not stand in either: ${relayWhy}.` };
   cacheTime = Date.now();
   return cache;
 }

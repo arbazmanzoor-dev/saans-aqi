@@ -18,6 +18,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "leaflet": "^1.9.4",
+    "pg": "^8.23.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {

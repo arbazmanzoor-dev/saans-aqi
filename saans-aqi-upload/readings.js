@@ -3,8 +3,7 @@
    Saans AQI — the day's measured AQI, saved as it is read
 
    This project's history comes from CPCB's annual workbooks, which arrive long
-   after the year they describe: the daily record ends 31 March 2025 while the
-   site runs in October 2026. Every live reading the app already fetches is a
+   after the year they describe. Every live reading the app already fetches is a
    measurement of today, so writing it down closes that gap going forward
    instead of waiting a year for a spreadsheet.
 
@@ -13,29 +12,28 @@
      the keyless model estimate, never test data. A row here is a measurement.
    · The last reading of a day wins. Each is a 24-hour mean, so the latest one
      covers the most of that day, which is what CPCB's daily figure is.
-   · Dates are Delhi dates. The server pins its timezone, and this re-derives
-     the date from the reading rather than trusting the host's idea of today.
-   ═══════════════════════════════════════════════════════════ */
-const path = require('path');
-const fs   = require('fs');
-const { DatabaseSync } = require('node:sqlite');
+   · Dates are Delhi dates, derived from the reading rather than from the
+     host's idea of today.
 
-const DB_PATH = process.env.SAANS_DB || path.join(__dirname, 'data', 'saans.db');
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-const db = new DatabaseSync(DB_PATH);
-/* Two connections share this file (alerts.js holds the other), so let a writer
-   wait rather than fail, and keep readers unblocked while one writes. */
-db.exec(`
-PRAGMA journal_mode = WAL;
-PRAGMA busy_timeout = 4000;
+   Storage is db.js: Postgres in production, SQLite locally.
+   ═══════════════════════════════════════════════════════════ */
+const db = require('./db.js');
+
+const DDL_PG = `
 CREATE TABLE IF NOT EXISTS daily_readings (
   date     TEXT PRIMARY KEY,
   aqi      INTEGER NOT NULL,
   stations INTEGER,
   source   TEXT NOT NULL,
   observed TEXT,
-  recorded TEXT NOT NULL);
-`);
+  recorded TEXT NOT NULL)`;
+const DDL_SQLITE = DDL_PG + ';';
+
+let ready = null;
+function init() {
+  if (!ready) ready = db.exec(DDL_PG, DDL_SQLITE);
+  return ready;
+}
 
 /* "2026-10-04" in Delhi, from the reading's own timestamp where it has one. */
 function delhiDate(iso) {
@@ -46,24 +44,26 @@ function delhiDate(iso) {
   }).format(d);
 }
 
-/* Returns the row written, or null with a reason — the caller logs it once so a
-   silent failure to record cannot look like a quiet success. */
-function record(reading) {
+/* Returns the row written, {error} if the write failed, or null if the reading
+   was not the kind we keep. The caller logs the error once, so a silent failure
+   to record cannot look like a quiet success. */
+async function record(reading) {
   if (!reading || reading.fallback || reading.test) return null;
   if (!(reading.count > 0) || !(reading.aqi > 0)) return null;
-  const date = delhiDate(reading.updated);
   const row = {
-    date, aqi: Math.round(reading.aqi), stations: reading.count || null,
-    source: String(reading.source || 'live'), observed: reading.updated || null,
-    recorded: new Date().toISOString(),
+    date: delhiDate(reading.updated), aqi: Math.round(reading.aqi),
+    stations: reading.count || null, source: String(reading.source || 'live'),
+    observed: reading.updated || null, recorded: new Date().toISOString(),
   };
   try {
-    db.prepare(`INSERT INTO daily_readings (date, aqi, stations, source, observed, recorded)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(date) DO UPDATE SET
-                  aqi=excluded.aqi, stations=excluded.stations, source=excluded.source,
-                  observed=excluded.observed, recorded=excluded.recorded`)
-      .run(row.date, row.aqi, row.stations, row.source, row.observed, row.recorded);
+    await init();
+    await db.run(
+      `INSERT INTO daily_readings (date, aqi, stations, source, observed, recorded)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT (date) DO UPDATE SET
+         aqi = EXCLUDED.aqi, stations = EXCLUDED.stations, source = EXCLUDED.source,
+         observed = EXCLUDED.observed, recorded = EXCLUDED.recorded`,
+      [row.date, row.aqi, row.stations, row.source, row.observed, row.recorded]);
     return row;
   } catch (e) {
     return { error: e.message };
@@ -71,25 +71,36 @@ function record(reading) {
 }
 
 /* Daily rows shaped like the workbook records, so the rest of the app can treat
-   both the same way. */
-function recs() {
+   both the same way. Cached: the forecast page asks for these on every scope
+   change, and a database round trip per call would be absurd for a table that
+   changes twice an hour at most. */
+let cache = [], cacheAt = 0;
+const CACHE_MS = 60 * 1000;
+
+async function refresh() {
   try {
-    return db.prepare('SELECT date, aqi FROM daily_readings ORDER BY date').all()
-      .map(r => {
-        const [y, m, d] = r.date.split('-').map(Number);
-        return { year: y, month: m, day: d, aqi: r.aqi, recorded: true };
-      });
-  } catch (e) { return []; }
+    await init();
+    const rows = await db.all('SELECT date, aqi FROM daily_readings ORDER BY date');
+    cache = rows.map(r => {
+      const [y, m, d] = String(r.date).split('-').map(Number);
+      return { year: y, month: m, day: d, aqi: db.num(r.aqi), recorded: true };
+    });
+    cacheAt = Date.now();
+  } catch (e) {
+    console.error(`⚠️  could not read saved readings: ${e.message}`);
+  }
+  return cache;
 }
 
-function all() {
-  try { return db.prepare('SELECT * FROM daily_readings ORDER BY date').all(); }
-  catch (e) { return []; }
+/* Synchronous by design: the prediction routes are full of synchronous record
+   handling, and an await per call would spread through all of them for a list
+   that is refreshed on a timer anyway. */
+const recs = () => cache;
+const count = () => cache.length;
+
+async function all() {
+  await init();
+  return db.all('SELECT * FROM daily_readings ORDER BY date');
 }
 
-function count() {
-  try { return db.prepare('SELECT COUNT(*) AS n FROM daily_readings').get().n; }
-  catch (e) { return 0; }
-}
-
-module.exports = { record, recs, all, count, delhiDate, DB_PATH };
+module.exports = { init, record, recs, count, all, refresh, delhiDate, CACHE_MS };

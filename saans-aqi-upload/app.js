@@ -892,10 +892,14 @@ function renderMap(fit) {
   const d = MAP.data;
   const byId = d.available ? new Map(d.wards.map(w => [w.id, w])) : new Map();
 
+  /* Which stations drew this map is not a detail: CPCB's own feed carries far
+     more of them than the WAQI relay, so the label says which one answered. */
+  const kind = d.test ? 'test' : d.stationSource === 'waqi' ? 'WAQI' : 'CPCB';
   document.getElementById('mapStatus').textContent = d.available
     ? (d.test ? 'TEST DATA — invented readings at real station sites, not measurements. ' : '')
-      + `${d.stations.length} ${d.test ? 'test' : 'CPCB'} stations, updated ${new Date(d.updated).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}. `
+      + `${d.stations.length} ${kind} stations, updated ${new Date(d.updated).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}. `
       + 'Each area — two or three wards — is estimated from its four nearest stations. Tap one to see how close they are.'
+      + (d.note ? ` ${d.note}` : '')
     : (d.message || 'Ward-wise AQI is unavailable right now.');
 
   if (MAP.wardLayer) MAP.wardLayer.remove();
@@ -928,11 +932,11 @@ function renderMap(fit) {
 
   document.getElementById('mapLegend').innerHTML = BANDS
     .map(x => `<span><i style="background:${token('--' + x.key)}"></i>${x.label}</span>`).join('')
-    + (d.available ? `<span><i style="border-radius:999px;background:${token('--card')};border:2px solid ${token('--ink2')}"></i>CPCB station</span>` : '');
+    + (d.available ? `<span><i style="border-radius:999px;background:${token('--card')};border:2px solid ${token('--ink2')}"></i>${kind} station</span>` : '');
 
   const src = d.boundarySource;
   document.getElementById('mapProv').textContent = [
-    d.available ? 'Stations: CPCB real-time feed via data.gov.in' : null,
+    d.available ? `Stations: ${d.source}` : null,
     src ? `Ward boundaries: ${src.label}${src.licence ? ` (${src.licence})` : ''}` : null,
     'Map: © OpenStreetMap contributors',
   ].filter(Boolean).join(' · ');
